@@ -18,21 +18,15 @@ Sample output:
 
 ## How does it work?
 
-Initialise the display buffer
+> Initialise the display buffer
 
-MainLoop: 
-
+> MainLoop: 
 > create thread for each module 
-
 > write result of each function to an element of statusbuffer[] string array
-
 > join the threads finally
-
 > concatenate the separated elements to a single buffer
-
 > write that buffer to xorg's XSetRoot buffer 
-
-> repeat
+> repeat MainLoop
 
 ## TODO:
 
