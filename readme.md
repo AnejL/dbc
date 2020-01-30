@@ -1,6 +1,6 @@
 # Yet another needlessly complicated status bar for dwm.
 
-This program shows the user current network status, alsa volume, battery status and current date... and does it on multple threads.
+This program shows the current network status, alsa master volume, battery status and current date... and does it on multple threads.
 
 I tried numerous times to implement PulseAudio module instead of ALSA, losing all the hope eventually. Maybe I will try again some time in the future (if anyone knows how to do it efficiently please contact me).
 
