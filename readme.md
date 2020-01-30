@@ -1,8 +1,8 @@
-##Yet another needlessly complicated status bar for dwm.
+#Yet another needlessly complicated status bar for dwm.
 
 This program shows the user current network status, alsa volume, battery status and current date... and does it on multple threads.
 
-###Installation:
+##Installation:
 
 >sudo make install
 
