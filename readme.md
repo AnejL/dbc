@@ -18,6 +18,16 @@ Sample output:
 
 >[ ((o)) homelan ] [ vol: 30% ] [ [+-] 100% ] | Thu 30 Jan 2020 01:32
 
+## Usage
+
+Usage is extremely simple, **dbc** starts the statusbar script (you can put it in xinitrc, make a systemd service, etc.).
+
+When you want to refresh simply type **refbar** into the command line, your preferred program running tool (dmenu, rofi, etc.) or in your shell scripts.
+
+## Configuration
+
+Edit the values in the config.h header file, **recompile** and run as usual.
+
 ## How does it work?
 
 > Initialise the display buffer
