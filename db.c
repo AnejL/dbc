@@ -48,9 +48,11 @@ int readIntFile(char *path)
 
 	// this is a hacky way to bypass trouble when reading invalid .../carrier file
 	// on an interface that is hardware-killed (eg thinkpad x230)
-	buf[0] = '0';
     if (read(fd, buf, 1) < 0)
-		//quit("trouble reading single int file");
+	{
+		close(fd);
+		return -1;
+	}
 
     close(fd);
 
@@ -144,7 +146,7 @@ void getnetwork(char* stbf)
 
     if (eon)
         sprintf(stbf, "[ Ethernet ] ");
-    else if (won)
+    else if (won > 0)
     {
         struct iwreq req;
         int sockfd;
@@ -172,8 +174,10 @@ void getnetwork(char* stbf)
 
         sprintf(stbf, "[ ((o)) %s ] ", ssidstr);
     }
-    else
+    else if (won == 0)
         sprintf(stbf, "[ Not Connected ] ");
+	else
+		sprintf(stbf, "[ Killed ] ");
 }
 
 void getvolume(char* statbuf) {
