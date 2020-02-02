@@ -4,7 +4,7 @@ This program shows the current network status, alsa master volume, battery statu
 
 I tried numerous times to implement PulseAudio module instead of ALSA, losing all the hope eventually. Maybe I will try again some time in the future (if anyone knows how to do it efficiently please contact me).
 
-This program was made and tested on the ThinkPad T480 with Arch Linux. I have no guarantees how it will work on other laptops / operating systems. If you are interested in testing or have a problem, feel free to contact me at anej.lekse@gmail.com.
+This program was made and tested on the ThinkPad T480 and X230, both running Arch Linux. I have no guarantees how it will work on other laptops / operating systems. If you are interested in testing or have a problem, feel free to contact me at anej.lekse@gmail.com.
 
 ## Installation:
 

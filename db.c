@@ -46,8 +46,11 @@ int readIntFile(char *path)
 
     char buf[1];
 
+	// this is a hacky way to bypass trouble when reading invalid .../carrier file
+	// on an interface that is hardware-killed (eg thinkpad x230)
+	buf[0] = '0';
     if (read(fd, buf, 1) < 0)
-        quit("trouble reading int file");
+		//quit("trouble reading single int file");
 
     close(fd);
 
@@ -67,7 +70,7 @@ int readShortIntFile(char *path)
     ssize_t rd = read(fd, buf, sizeof(buf));
 
     if (rd < 0)
-        quit("trouble reading int file");
+        quit("Trouble reading short int file");
 
     close(fd);
 
@@ -116,7 +119,7 @@ void getpower(char* statbuf) {
     if (isDir(BATDIR) || BATTERYCOUNT > 0)
     {
         int b0;
-
+		
         b0 = readShortIntFile(BAT0);
 
         if (BATTERYCOUNT > 1)
