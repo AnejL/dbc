@@ -126,7 +126,7 @@ void getpower(char* statbuf) {
 
         if (BATTERYCOUNT > 1)
         {
-            b0 = (b0 + readShortIntFile(BAT1)) / 2;
+            b0 = (b0 + readShortIntFile(BAT1)) >> 1;
         }
 
         sprintf(statbuf, "[ [+-] %d%% ] ", b0);
