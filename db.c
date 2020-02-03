@@ -126,6 +126,7 @@ void getpower(char* statbuf) {
 
         if (BATTERYCOUNT > 1)
         {
+			// division by 2 in binary
             b0 = (b0 + readShortIntFile(BAT1)) >> 1;
         }
 
@@ -183,6 +184,7 @@ void getnetwork(char* stbf)
 void getvolume(char* statbuf) {
     // select default master profile from alsa devices
     long min, max, volume = 0;
+	int enabled;
     snd_mixer_t *handle;
     snd_mixer_selem_id_t *sid;
     const char *card = CARD;
@@ -198,15 +200,24 @@ void getvolume(char* statbuf) {
     snd_mixer_selem_id_set_name(sid, selem_name);
     snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
 
-    // write actual volume range to int pointers
-    snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-    snd_mixer_selem_get_playback_volume(elem, 0, &volume);
-    snd_mixer_close(handle);
+	// check if card is muted
+	snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_UNKNOWN, &enabled);
+	if (!enabled)
+	{
+    	sprintf(statbuf, "[ vol: x ] ");
+	}
+	else
+	{
+		// write actual volume range to int pointers
+		snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
+		snd_mixer_selem_get_playback_volume(elem, 0, &volume);
+		snd_mixer_close(handle);
+		
+		// reuse variable for percentage instead of the current absolute value... whatever
+		volume = ((double)volume / max) * 100;
+    	sprintf(statbuf, "[ vol: %d%% ] ", volume);
+	}
 
-    // reuse variable for percentage instead of the current absolute value... whatever
-    volume = ((double)volume / max) * 100;
-
-    sprintf(statbuf, "[ vol: %d%% ] ", volume);
 }
 
 void setstatus(int limit){
