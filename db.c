@@ -35,7 +35,7 @@ static Display *dpy;
 //
 void quit(char *message)
 {
-    printf("Quitting! Err: %s\n", message);
+    printf("Quitting! %s\n", message);
     exit(1);
 }
 
@@ -281,27 +281,32 @@ void initstatusbuffer()
 
 void checkconfig()
 {
+	// check if battery count was right
 	if (BATTERYCOUNT > 0)
 	{
-		struct stat statbuf;
-		if (stat(BAT0DIR, &statbuf) < 0)
-			err("Trouble reading BAT0DIR");
+		if (! isDir(BAT0DIR))
+			err("Battery 0 not detected! Quitting!");
 		
-		if (S_ISDIR(statbuf.st_mode) == 0)
-			quit("Battery 0 not detected! Quitting!");
-
-
 		if (BATTERYCOUNT == 2)
 		{
-			if (stat(BAT1DIR, &statbuf) < 0)
-				err("Trouble reading BAT1DIR");
-			
-			if (S_ISDIR(statbuf.st_mode) == 0)
-				quit("Battery 1 not detected! Quitting!");
-
+			if (! isDir(BAT1DIR))
+				err("Battery 1 not detected! Quitting!");
 		}
 		else if (BATTERYCOUNT > 2)
 			quit("More than two batteries not supported!");
+	}
+
+	// TODO check if wlan / ethernet are even enabled
+	// check wlan and ethernet
+	if (! isDir(WLANDIR))
+	{
+		printf("WiFi interface with name %s not found!\nUse \"ip a\" to get its name.\n", WLAN);
+		quit("Configuration checking failed!");
+	}	
+	if (! isDir(ETHERNETDIR))
+	{
+		printf("Ethernet interface with name %s not found!\nUse \"ip a\" to get its name.\n", ETHERNET);
+		quit("Configuration checking failed!");
 	}
 }
 
