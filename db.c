@@ -16,6 +16,8 @@
 
 #include "config.h"
 
+#define err(mess) { fprintf(stderr,"Error: %s.\n", mess); exit(1); }
+
 // thread array (one thread for each module) and array of strings for each status module
 pthread_t threads[MODCOUNT];
 char *statusbuffer[MODCOUNT];
@@ -118,7 +120,7 @@ void getdatetime(char* statbuf)
 void getpower(char* statbuf) {
 
     // if you choose to monitor batteries get capacity levels for max 2 batteries
-    if (isDir(BATDIR) || BATTERYCOUNT > 0)
+    if (BATTERYCOUNT > 0)
     {
         int b0;
 		
@@ -133,7 +135,7 @@ void getpower(char* statbuf) {
         sprintf(statbuf, "[ [+-] %d%% ] ", b0);
     }
     else
-        sprintf(statbuf, "[ =D- ] ");
+        sprintf(statbuf, "[ AC ] ");
 }
 
 
@@ -277,11 +279,39 @@ void initstatusbuffer()
     }
 }
 
+void checkconfig()
+{
+	if (BATTERYCOUNT > 0)
+	{
+		struct stat statbuf;
+		if (stat(BAT0DIR, &statbuf) < 0)
+			err("Trouble reading BAT0DIR");
+		
+		if (S_ISDIR(statbuf.st_mode) == 0)
+			quit("Battery 0 not detected! Quitting!");
+
+
+		if (BATTERYCOUNT == 2)
+		{
+			if (stat(BAT1DIR, &statbuf) < 0)
+				err("Trouble reading BAT1DIR");
+			
+			if (S_ISDIR(statbuf.st_mode) == 0)
+				quit("Battery 1 not detected! Quitting!");
+
+		}
+		else if (BATTERYCOUNT > 2)
+			quit("More than two batteries not supported!");
+	}
+}
+
 // main
 //
 int main(int argc, char* argv[])
 {
     initdisplay();
+
+	checkconfig();
 
     // refresh on SIGUSR clean up on SIGINT
     signal(SIGUSR1, refreshstatus);
