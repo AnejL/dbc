@@ -4,6 +4,7 @@ PWD = $(shell pwd)
 
 install: db.c
 	gcc -lX11 -lasound -lpthread -o dbc -O1 db.c
+	cp config.def.h config.h
 	ln -s $(PWD)/dbc $(LINKLOC)
 	ln -s $(PWD)/refbar.sh $(REFBARLOC)
 clean:
