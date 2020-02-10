@@ -132,10 +132,10 @@ void getpower(char* statbuf) {
             b0 = (b0 + readShortIntFile(BAT1)) >> 1;
         }
 
-        sprintf(statbuf, "[ [+-] %d%% ] ", b0);
+        sprintf(statbuf, "[  %d%% ] ", b0);
     }
     else
-        sprintf(statbuf, "[ AC ] ");
+        sprintf(statbuf, "[  ] ");
 }
 
 
@@ -148,7 +148,7 @@ void getnetwork(char* stbf)
     won = readIntFile(WLANON);
 
     if (eon)
-        sprintf(stbf, "[ Ethernet ] ");
+        sprintf(stbf, "[  ] ");
     else if (won > 0)
     {
         struct iwreq req;
@@ -175,10 +175,10 @@ void getnetwork(char* stbf)
         close(sockfd);
         free(ssid);
 
-        sprintf(stbf, "[ ((o)) %s ] ", ssidstr);
+        sprintf(stbf, "[  %s ] ", ssidstr);
     }
     else if (won == 0)
-        sprintf(stbf, "[ Not Connected ] ");
+        sprintf(stbf, "[   ] ");
 	else
 		sprintf(stbf, "[ Killed ] ");
 }
@@ -206,7 +206,7 @@ void getvolume(char* statbuf) {
 	snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_UNKNOWN, &enabled);
 	if (!enabled)
 	{
-    	sprintf(statbuf, "[ vol: x ] ");
+    	sprintf(statbuf, "[  ] ");
 	}
 	else
 	{
@@ -217,7 +217,7 @@ void getvolume(char* statbuf) {
 		
 		// reuse variable for percentage instead of the current absolute value... whatever
 		volume = ((double)volume / max) * 100;
-    	sprintf(statbuf, "[ vol: %d%% ] ", volume);
+    	sprintf(statbuf, "[  %d%% ] ", volume);
 	}
 
 }
