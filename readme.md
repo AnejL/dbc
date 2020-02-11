@@ -7,6 +7,7 @@ I tried numerous times to implement PulseAudio module instead of ALSA, losing al
 This program was made and tested on the ThinkPad T480 and X230, both running Arch Linux. I have no guarantees that it will work on other laptops / operating systems even though it should. If you are interested in testing or have a problem, feel free to contact me at anej.lekse@gmail.com.
 
 Sample output:
+
 ![alt text](https://github.com/anejl/dbc/demo.png "Sample output")
 
 ## Installation:
