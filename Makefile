@@ -1,13 +1,24 @@
+SHELL = /bin/sh
+CFLAGS = -lX11 -lasound -lpthread
+CC = gcc
+
 LINKLOC = /usr/local/bin/dbc
 REFBARLOC = /usr/local/bin/refbar
 PWD = $(shell pwd)
 
+.SUFFIXES: 
+.SUFFIXES: .sh .c .o 
+
 install: db.c
-	gcc -lX11 -lasound -lpthread -o dbc -O1 db.c
-	# cp config.def.h config.h
-	ln -s $(PWD)/dbc $(LINKLOC)
-	ln -s $(PWD)/refbar.sh $(REFBARLOC)
+	@if [ ! -f $(PWD)/config.h ]; then\
+		cp config.def.h config.h;\
+	fi\
+
+	$(CC) $(CFLAGS) -o dbc -O1 db.c
+
+	ln -sf $(PWD)/dbc $(LINKLOC)
+	ln -sf $(PWD)/refbar.sh $(REFBARLOC)
 clean:
-	unlink $(LINKLOC)
-	unlink $(REFBARLOC)
-	rm dbc
+	rm -f dbc
+uninstall:
+	rm -f $(LINKLOC) $(REFBARLOC)

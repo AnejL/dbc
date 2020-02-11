@@ -6,17 +6,21 @@ I tried numerous times to implement PulseAudio module instead of ALSA, losing al
 
 This program was made and tested on the ThinkPad T480 and X230, both running Arch Linux. I have no guarantees that it will work on other laptops / operating systems even though it should. If you are interested in testing or have a problem, feel free to contact me at anej.lekse@gmail.com.
 
-## Installation:
-
->sudo make install
-
-or, if you are reinstalling 
-
->sudo make clean install
-
 Sample output:
 
 >[ ((o)) homelan ] [ vol: 30% ] [ [+-] 100% ] | Thu 30 Jan 2020 01:32
+
+## Installation:
+
+> sudo make
+
+Reinstalling after changing config.h
+
+> sudo make clean install
+
+Uninstallation:
+
+> sudo make clean uninstall
 
 ## Usage
 
@@ -26,7 +30,11 @@ When you want to refresh the statusbar simply type **refbar** into the command l
 
 ## Configuration
 
-Edit the values in the config.h header file, **recompile** and run as usual.
+After you run 
+
+> sudo make 
+
+installer generates config.h file. Edit the values in that file, **recompile** and run as usual.
 
 ## How does it work?
 
@@ -49,5 +57,4 @@ Edit the values in the config.h header file, **recompile** and run as usual.
 
 ## TODO:
 
-- fix the cheesy makefile
 - optimise further
