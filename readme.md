@@ -8,7 +8,7 @@ This program was made and tested on the ThinkPad T480 and X230, both running Arc
 
 Sample output:
 
-![alt text](https://github.com/anejl/dbc/demo.png "Sample output")
+![alt text](https://github.com/anejl/dbc/blob/master/demo.png "Sample output")
 
 ## Installation:
 
