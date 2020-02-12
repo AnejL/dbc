@@ -36,25 +36,13 @@ After you run
 
 installer generates config.h file. Edit the values in that file, **recompile** and run as usual.
 
-## How does it work?
-
-> Initialise the program (xorg and display buffers, argument counting, etc.)
-
-
-> START: 
-
-> create new thread for each module 
-
-> write result of each getter function to an element of statusbuffer[] string array
-
-> join the separate threads finally
-
-> concatenate the separated elements to a single buffer
-
-> write that buffer to xorg's XSetRoot buffer 
-
-> goto START
-
 ## TODO:
 
-- optimise further
+- optimise current features - especially reading of module files
+- add more modules and upgrade current ones
+	- add default gateway ip to the output
+	- levels of charge, volume,...
+	- disk space module
+	- memory usage module
+	- cpu usage module
+	- compact view
