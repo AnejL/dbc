@@ -1,6 +1,8 @@
 SHELL = /bin/sh
 CFLAGS = -lX11 -lasound -lpthread
+OFLAG = -O2
 CC = gcc
+
 
 LINKLOC = /usr/local/bin/dbc
 REFBARLOC = /usr/local/bin/refbar
@@ -14,7 +16,7 @@ install: db.c
 		cp config.def.h config.h;\
 	fi\
 
-	$(CC) $(CFLAGS) -o dbc -O1 db.c
+	$(CC) $(CFLAGS) -o dbc $(OFLAG) db.c
 
 	ln -sf $(PWD)/dbc $(LINKLOC)
 	ln -sf $(PWD)/refbar.sh $(REFBARLOC)
