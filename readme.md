@@ -84,4 +84,3 @@ Displaying the string would look something like this
 	- compact view
 - manpage entry
 - configuration of control variables in config.h
-- configure refresh interval

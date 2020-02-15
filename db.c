@@ -427,7 +427,7 @@ int main(int argc, char* argv[])
         updatestatus();
     else
     {
-        for (;; sleep(20))
+        for (;; sleep(REFRESHINTERVAL))
             updatestatus();
     }
 

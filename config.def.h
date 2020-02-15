@@ -5,6 +5,10 @@
 	// if you don't add any of your own modules this shouldn't change
     #define MODCOUNT        4
 
+	// number of seconds between the automatic refresh
+	// set REFRESHINTERVAL to custom value
+	#define REFRESHINTERVAL 20
+
     // number of batteries to monitor 
 	// set BATTERYCOUNT to  0, 1 or 2
     #define BATTERYCOUNT    0
