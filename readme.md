@@ -44,7 +44,7 @@ Execute **s**ingle iteration *(useful for timing, or cheesily modifying refresh 
 
 > dbc -n
 
-**O**utput status string **only once** to STDOUT *(useful for terminal-only SSH and maybe combining this script with shell scripts)*
+**O**utput status string **only once** to STDOUT *(useful for terminal-only SSH and maybe combining this program with shell scripts)*
 
 > dbc -o
 
