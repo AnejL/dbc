@@ -31,6 +31,9 @@ char *status;
 // X11 display
 static Display *dpy;
 
+// single iteration execution, error supressing and printing to stdout control variables
+int singleiter, noerror, printtostdout;
+
 // general purpouse helper functions
 //
 void quit(char *message)
@@ -82,9 +85,8 @@ int readShortIntFile(char *path)
 }
 
 int isDir(char *path) {
-    int fd = open(path, O_DIRECTORY);
-
-    if (fd == -1 )
+	int fd;
+    if ((fd = open(path, O_DIRECTORY)) == -1 )
         return 0;
     else {
         close(fd);
@@ -122,17 +124,36 @@ void getpower(char* statbuf) {
     // if you choose to monitor batteries get capacity levels for max 2 batteries
     if (BATTERYCOUNT > 0)
     {
-        int b0;
+        int capacity;
 		
-        b0 = readShortIntFile(BAT0);
+        capacity = readShortIntFile(BAT0);
 
         if (BATTERYCOUNT > 1)
         {
 			// division by 2 in binary
-            b0 = (b0 + readShortIntFile(BAT1)) >> 1;
+            capacity = (capacity + readShortIntFile(BAT1)) >> 1;
         }
 
-        sprintf(statbuf, "[  %d%% ] ", b0);
+		char *part;
+		part = calloc(4, sizeof(char));
+		switch (capacity / 25)
+		{
+			case 0:
+				strcpy(part, "");
+				break;
+			case 1:
+				strcpy(part, "");
+				break;
+			case 2:
+				strcpy(part, "");
+				break;
+			default:
+				strcpy(part, "");
+				break;
+		}
+
+        sprintf(statbuf, "[ %s %d%% ] ", part, capacity);
+		free(part);
     }
     else
         sprintf(statbuf, "[  ] ");
@@ -204,22 +225,40 @@ void getvolume(char* statbuf) {
 
 	// check if card is muted
 	snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_UNKNOWN, &enabled);
+	
+	// write actual volume range to int pointers
+	snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
+	snd_mixer_selem_get_playback_volume(elem, 0, &volume);
+	snd_mixer_close(handle);
+	
+	// reuse variable for percentage instead of the current absolute value... whatever
+	volume = ((double)volume / max) * 100;
+
+	char *part;
+	part = calloc(4, sizeof(char));
+
 	if (!enabled)
 	{
-    	sprintf(statbuf, "[  ] ");
+		strcpy(part, "");
 	}
 	else
 	{
-		// write actual volume range to int pointers
-		snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-		snd_mixer_selem_get_playback_volume(elem, 0, &volume);
-		snd_mixer_close(handle);
-		
-		// reuse variable for percentage instead of the current absolute value... whatever
-		volume = ((double)volume / max) * 100;
-    	sprintf(statbuf, "[  %d%% ] ", volume);
+		switch (volume / 20)
+		{
+			case 0:
+				strcpy(part, "");
+				break;
+			case 1:
+				strcpy(part, "");
+				break;
+			default:
+				strcpy(part, "");
+				break;
+		}
 	}
 
+	sprintf(statbuf, "[ %s %d%% ] ", part, volume);
+	free(part);
 }
 
 void setstatus(int limit){
@@ -232,8 +271,16 @@ void setstatus(int limit){
     {
         strcat(status, statusbuffer[i]);
     }
-    XStoreName(dpy, DefaultRootWindow(dpy), status);
-    XSync(dpy, False);
+
+	if (! printtostdout)
+	{
+		XStoreName(dpy, DefaultRootWindow(dpy), status);
+		XSync(dpy, False);
+	}
+	else
+		fprintf(stdout, "%s\n", status);
+
+	free(status);
 }
 
 void updatestatus()
@@ -257,21 +304,24 @@ void refreshstatus(int signo)
 
 void siginthandler(int signo)
 {
+	// free all status strings, previously allocated
     int i;
     for ( i = 0; i < MODCOUNT; i++)
     {
-        printf("%d\n", i);
         free(statusbuffer[i]);
     }
-    free(status);
 
-    printf("Freed the buffers, exiting.");
+	// close connection to X server
+	if (! printtostdout)
+    	XCloseDisplay(dpy);
 
-    XCloseDisplay(dpy);
+    printf("Freed the status buffers and closed display, exiting.\n");
+	exit(0);
 }
 
 void initstatusbuffer()
 {
+	// allocate 30 bytes to status string locations
     int i;
     for ( i = 0; i < MODCOUNT; i++)
     {
@@ -310,18 +360,65 @@ void checkconfig()
 	}
 }
 
+
+void parseargs(int argc, char* argv[])
+{
+	int i, j;
+	for (i = 1; i < argc; i++)
+	{
+		if (argv[i][0] == '-')
+		{
+			for (j = 1; j < strlen(argv[i]); j++)
+			{
+				switch (argv[i][j])
+				{
+					case 's': 
+						singleiter = 1;
+						break;
+					case 'n':
+						noerror = 1;
+						break;
+					case 'o':
+						singleiter = 1;
+						printtostdout = 1;
+						break;
+					default:
+						printf("Argument option \"%c\" is not recognised!\n", argv[i][j]);
+						quit("");
+						break;
+				}
+			}
+		}
+		else
+			quit("Argument syntax wrong! Example: dbc -sn");
+	}
+}
+
 // main
 //
 int main(int argc, char* argv[])
 {
-    initdisplay();
+	singleiter = 0;
+	noerror = 0;
+	printtostdout = 0;
+	
+	// parse arguments and set control variables
+	if (argc > 1)
+		parseargs(argc, argv);
 
-	checkconfig();
+	// if printtostdout is not set write to xsetroot
+	if (! printtostdout)
+    	initdisplay();
+
+	// if error checking is enabled check them
+	if (! noerror)
+		checkconfig();
 
     // refresh on SIGUSR clean up on SIGINT
     signal(SIGUSR1, refreshstatus);
-    signal(SIGINT, refreshstatus);
+    signal(SIGINT, siginthandler);
 
+	// initialise status string memory locations for set number of modules
     initstatusbuffer();
 
     // fill the array with pointers to statusbar module functions
@@ -330,8 +427,7 @@ int main(int argc, char* argv[])
     modules[2] = getpower;
     modules[3] = getdatetime;
 
-    // if -s argument is passed at execution only set status once (for measuring time mostly)
-    if (argc > 1 && strcmp(argv[1], "-s") == 0)
+    if (singleiter)
         updatestatus();
     else
     {
