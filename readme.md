@@ -40,11 +40,11 @@ Execute **s**ingle iteration *(useful for timing, or cheesily modifying refresh 
 
 > dbc -s
 
-Skip error checking *(for people who like segfaults)*
+**N**o error checking *(for people who like segfaults)*
 
 > dbc -n
 
-Output status string **only once** to STDOUT *(useful for terminal-only SSH and maybe combining this script with shell scripts)*
+**O**utput status string **only once** to STDOUT *(useful for terminal-only SSH and maybe combining this script with shell scripts)*
 
 > dbc -o
 
