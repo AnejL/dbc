@@ -16,7 +16,7 @@ Sample output:
 
 Arch Linux
 
-> \# sudo pacman -S libx11 alsa-lib
+> \# sudo pacman -S libx11 alsa-lib ttf-font-awesome
 
 Create config.h file for storing local configurations
 
@@ -61,6 +61,16 @@ After you run
 > sudo make 
 
 installer generates config.h file. Edit the *quite self-explanatory* values in that file, **recompile** and run as usual.
+
+## Combining dbc with shell scripts
+
+It's perfectly possible to do something like this:
+
+> echo "[ $( free -h | head -2 | tail -1 | awk '{print $3}') ] " | tr -d '\n' && dbc -o
+
+Displaying the string would look something like this
+
+> xsetroot -name " $HOSTNAME | $(dbc -o)"
 
 ## TODO:
 

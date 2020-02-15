@@ -95,7 +95,7 @@ int isDir(char *path) {
 }
 
 // statusbar specific helper functions
-//
+// initialise connection to X server
 void initdisplay(){
     if (!(dpy = XOpenDisplay(NULL)))
         quit("display can't be opened...");
@@ -223,7 +223,7 @@ void getvolume(char* statbuf) {
     snd_mixer_selem_id_set_name(sid, selem_name);
     snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
 
-	// check if card is muted
+	// if card is enabled write 1 to enabled
 	snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_UNKNOWN, &enabled);
 	
 	// write actual volume range to int pointers
@@ -238,9 +238,7 @@ void getvolume(char* statbuf) {
 	part = calloc(4, sizeof(char));
 
 	if (!enabled)
-	{
 		strcpy(part, "");
-	}
 	else
 	{
 		switch (volume / 20)
@@ -261,16 +259,14 @@ void getvolume(char* statbuf) {
 	free(part);
 }
 
-void setstatus(int limit){
+void setstatus(){
     // only works for one display right now
     status = calloc(300, sizeof(char));
     int i;
 
     strcpy(status, statusbuffer[0]);
-    for (i = 1; i < limit; i++)
-    {
+    for (i = 1; i < MODCOUNT; i++)
         strcat(status, statusbuffer[i]);
-    }
 
 	if (! printtostdout)
 	{
@@ -279,8 +275,6 @@ void setstatus(int limit){
 	}
 	else
 		fprintf(stdout, "%s\n", status);
-
-	free(status);
 }
 
 void updatestatus()
@@ -294,7 +288,7 @@ void updatestatus()
     for (i = 0; i < MODCOUNT; i++)
         pthread_join(threads[i], NULL);
 
-    setstatus(MODCOUNT);
+    setstatus();
 }
 
 void refreshstatus(int signo)
@@ -311,11 +305,13 @@ void siginthandler(int signo)
         free(statusbuffer[i]);
     }
 
+	free(status);
+
 	// close connection to X server
 	if (! printtostdout)
     	XCloseDisplay(dpy);
 
-    printf("Freed the status buffers and closed display, exiting.\n");
+    printf("Freed the status buffers and closed connection to X, exiting.\n");
 	exit(0);
 }
 
@@ -431,9 +427,8 @@ int main(int argc, char* argv[])
         updatestatus();
     else
     {
-        for (;; sleep(20) ) {
+        for (;; sleep(20))
             updatestatus();
-        }
     }
 
     return 0;
