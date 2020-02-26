@@ -11,6 +11,7 @@
 #include <alsa/mixer.h>
 #include <pthread.h>
 #include <X11/Xlib.h>
+#include <X11/XKBlib.h>
 #include <sys/ioctl.h>
 #include <linux/wireless.h>
 
@@ -259,6 +260,13 @@ void getvolume(char* statbuf) {
 	free(part);
 }
 
+void getcapslock(char* statbuf) {
+	// get xorgs keyboard state
+	unsigned n;
+    XkbGetIndicatorState(dpy, XkbUseCoreKbd, &n);
+	sprintf(statbuf, "[ %s ] ", (n & 1) ? "AB"  : "ab" );
+}
+
 void setstatus(){
     // only works for one display right now
     status = calloc(300, sizeof(char));
@@ -418,10 +426,11 @@ int main(int argc, char* argv[])
     initstatusbuffer();
 
     // fill the array with pointers to statusbar module functions
-    modules[0] = getnetwork;
-    modules[1] = getvolume;
-    modules[2] = getpower;
-    modules[3] = getdatetime;
+    modules[0] = getcapslock;
+    modules[1] = getnetwork;
+    modules[2] = getvolume;
+    modules[3] = getpower;
+    modules[4] = getdatetime;
 
     if (singleiter)
         updatestatus();

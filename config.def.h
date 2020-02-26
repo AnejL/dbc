@@ -3,7 +3,7 @@
 
     // number of modules in statusbars that doubles as number of threads
 	// if you don't add any of your own modules this shouldn't change
-    #define MODCOUNT        4
+    #define MODCOUNT        5
 
 	// number of seconds between the automatic refresh
 	// set REFRESHINTERVAL to custom value
