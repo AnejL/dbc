@@ -17,20 +17,12 @@
     // number of batteries to monitor 
 	// set BATTERYCOUNT to  0, 1 or 2
     #define BATTERYCOUNT   	0
-    #define BAT0DIR         "/sys/class/power_supply/BAT0"
-    #define BAT1DIR         "/sys/class/power_supply/BAT1"
-    #define BAT0            "/sys/class/power_supply/BAT0/capacity"
-    #define BAT1            "/sys/class/power_supply/BAT1/capacity"
-
+   
     // network
 	// set WLAN and ETHERNET variables
     #define WLAN            "wlp9s0"
     #define ETHERNET        "eno1"
-    #define WLANDIR         "/sys/class/net/"WLAN
-    #define ETHERNETDIR     "/sys/class/net/"ETHERNET
-    #define WLANON          "/sys/class/net/"WLAN"/carrier"
-    #define ETHERNETON      "/sys/class/net/"ETHERNET"/carrier"
-
+    
     // alsa
 	// set PROFILE to match your preferred soundcard profile e.g Master or IEC958
     #define CARD            "default"
@@ -40,7 +32,7 @@
 	// 0 => [ mod ]
 	// 1 => | mod |
 	// 2 => < mod <
-	#define STYLE			1
+	#define STYLE			2
 
 	// turn shorter minimal mode on with 1 here
 	#define MINIMALMODE		0
