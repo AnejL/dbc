@@ -3,7 +3,12 @@
 
     // number of modules in statusbars that doubles as number of threads
 	// if you don't add any of your own modules this shouldn't change
-    #define MODCOUNT        5
+	// caps lock is a special module and should not be counted in here
+    #define MODCOUNT		4
+
+	// set to 1 if you want [ ab ] / [ AB ] to show when you have caps on
+	// else set it to 0
+	#define CAPSMODULE		0
 
 	// number of seconds between the automatic refresh
 	// set REFRESHINTERVAL to custom value
@@ -11,7 +16,7 @@
 
     // number of batteries to monitor 
 	// set BATTERYCOUNT to  0, 1 or 2
-    #define BATTERYCOUNT    0
+    #define BATTERYCOUNT    1
     #define BAT0DIR         "/sys/class/power_supply/BAT0"
     #define BAT1DIR         "/sys/class/power_supply/BAT1"
     #define BAT0            "/sys/class/power_supply/BAT0/capacity"
@@ -19,8 +24,8 @@
 
     // network
 	// set WLAN and ETHERNET variables
-    #define WLAN            "wlp9s0"
-    #define ETHERNET        "eno1"
+    #define WLAN            "wlp3s0"
+    #define ETHERNET        "enp0s25"
     #define WLANDIR         "/sys/class/net/"WLAN
     #define ETHERNETDIR     "/sys/class/net/"ETHERNET
     #define WLANON          "/sys/class/net/"WLAN"/carrier"

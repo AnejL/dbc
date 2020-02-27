@@ -20,11 +20,12 @@
 #define err(mess) { fprintf(stderr,"Error: %s.\n", mess); exit(1); }
 
 // thread array (one thread for each module) and array of strings for each status module
-pthread_t threads[MODCOUNT];
-char *statusbuffer[MODCOUNT];
+// MODCOUNT + CAPSMODULE is used because caps lock module is not useful for everybody so it can be switched to 0
+pthread_t threads[MODCOUNT + CAPSMODULE];
+char *statusbuffer[MODCOUNT + CAPSMODULE];
 
 // array of function pointers argument is a single statusbuffer[] element
-void (*modules[MODCOUNT]) (char* statbuf);
+void (*modules[MODCOUNT + CAPSMODULE]) (char* statbuf);
 
 // final status char* that gets written to xsetroot
 char *status;
@@ -280,7 +281,7 @@ void setstatus(){
     int i;
 
     strcpy(status, statusbuffer[0]);
-    for (i = 1; i < MODCOUNT; i++)
+    for (i = 1; i < MODCOUNT + CAPSMODULE; i++)
         strcat(status, statusbuffer[i]);
 
 	if (! printtostdout)
@@ -296,11 +297,11 @@ void updatestatus()
 {
     // create a thread for every module, and join all threads afterwards
     int i;
-    for (i = 0; i < MODCOUNT; i++)
+    for (i = 0; i < MODCOUNT + CAPSMODULE; i++)
     {
         pthread_create(&threads[i], NULL, (void *) modules[i], statusbuffer[i]);
     }
-    for (i = 0; i < MODCOUNT; i++)
+    for (i = 0; i < MODCOUNT + CAPSMODULE; i++)
         pthread_join(threads[i], NULL);
 
     setstatus();
@@ -315,7 +316,7 @@ void siginthandler(int signo)
 {
 	// free all status strings, previously allocated
     int i;
-    for ( i = 0; i < MODCOUNT; i++)
+    for ( i = 0; i < MODCOUNT + CAPSMODULE; i++)
     {
         free(statusbuffer[i]);
     }
@@ -334,7 +335,7 @@ void initstatusbuffer()
 {
 	// allocate 30 bytes to status string locations
     int i;
-    for ( i = 0; i < MODCOUNT; i++)
+    for ( i = 0; i < MODCOUNT + CAPSMODULE; i++)
     {
         statusbuffer[i] = calloc(30, sizeof(char));
     }
@@ -433,11 +434,15 @@ int main(int argc, char* argv[])
     initstatusbuffer();
 
     // fill the array with pointers to statusbar module functions
-    modules[0] = getcapslock;
-    modules[1] = getnetwork;
-    modules[2] = getvolume;
-    modules[3] = getpower;
-    modules[4] = getdatetime;
+	int index;
+	index = 0;
+	if (CAPSMODULE)
+    	modules[index++] = getcapslock;
+
+    modules[index++] = getnetwork;
+    modules[index++] = getvolume;
+    modules[index++] = getpower;
+    modules[index++] = getdatetime;
 
     if (singleiter)
         updatestatus();
