@@ -261,10 +261,17 @@ void getvolume(char* statbuf) {
 }
 
 void getcapslock(char* statbuf) {
-	// get xorgs keyboard state
-	unsigned n;
-    XkbGetIndicatorState(dpy, XkbUseCoreKbd, &n);
-	sprintf(statbuf, "[ %s ] ", (n & 1) ? "AB"  : "ab" );
+	if (!printtostdout)
+	{
+		// get xorgs keyboard state
+		unsigned n;
+		XkbGetIndicatorState(dpy, XkbUseCoreKbd, &n);
+		sprintf(statbuf, "[ %s ] ", (n & 1) ? "AB"  : "ab" );
+	}
+	else
+	{
+		sprintf(statbuf, "[ ab ] ");
+	}
 }
 
 void setstatus(){
