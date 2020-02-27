@@ -15,35 +15,12 @@
 #include <sys/ioctl.h>
 #include <linux/wireless.h>
 
+// config and definitions files
 #include "config.h"
-
-#define err(mess) { fprintf(stderr,"Error: %s.\n", mess); exit(1); }
-
-// thread array (one thread for each module) and array of strings for each status module
-// MODCOUNT + CAPSMODULE is used because caps lock module is not useful for everybody so it can be switched to 0
-pthread_t threads[MODCOUNT + CAPSMODULE];
-char *statusbuffer[MODCOUNT + CAPSMODULE];
-
-// array of function pointers argument is a single statusbuffer[] element
-void (*modules[MODCOUNT + CAPSMODULE]) (char* statbuf);
-
-// final status char* that gets written to xsetroot
-char *status;
-
-// X11 display
-static Display *dpy;
-
-// single iteration execution, error supressing and printing to stdout control variables
-int singleiter, noerror, printtostdout;
+#include "db.h"
 
 // general purpouse helper functions
 //
-void quit(char *message)
-{
-    printf("Quitting! %s\n", message);
-    exit(1);
-}
-
 int readIntFile(char *path)
 {
     int fd;
@@ -62,7 +39,8 @@ int readIntFile(char *path)
 	}
 
     close(fd);
-
+	
+	// ascii value - 48 is the correct numeric value
     return buf[0] - 48;
 }
 
@@ -118,7 +96,21 @@ void getdatetime(char* statbuf)
     if (ptm == NULL)
         quit("localtime() failiure");
 
-    strftime(statbuf, 80, "| %a %d %b %Y %H:%M ", ptm);
+	char* part;
+	part = calloc(30, sizeof(char));
+
+	if (MINIMALMODE)
+		strftime(part, 30, "%d.%m.%Y %H:%M", ptm);
+	else
+    	strftime(part, 30, "%a %d %b %Y %H:%M", ptm);
+
+	// a cheesy but efficient way to get my original style even though it's a bit dirty
+	if (!STYLE)
+		sprintf(statbuf, "| %s ", part);
+	else
+		sprintf(statbuf, delimeterformat, part);
+
+	free(part);
 }
 
 void getpower(char* statbuf) {
@@ -137,32 +129,45 @@ void getpower(char* statbuf) {
         }
 
 		char *part;
-		part = calloc(4, sizeof(char));
-		switch (capacity / 25)
+		part = calloc(10, sizeof(char));
+		if (MINIMALMODE)
 		{
-			case 0:
-				strcpy(part, "");
-				break;
-			case 1:
-				strcpy(part, "");
-				break;
-			case 2:
-				strcpy(part, "");
-				break;
-			default:
-				strcpy(part, "");
-				break;
+			sprintf(part, "%d", capacity);
+		}
+		else
+		{
+			switch (capacity / 25)
+			{
+				case 0:
+					strcpy(part, "");
+					break;
+				case 1:
+					strcpy(part, "");
+					break;
+				case 2:
+					strcpy(part, "");
+					break;
+				default:
+					strcpy(part, "");
+					break;
+			}
+
+			sprintf(part, "%s %d%%", part, capacity); 	
 		}
 
-        sprintf(statbuf, "[ %s %d%% ] ", part, capacity);
+        sprintf(statbuf, delimeterformat, part);
 		free(part);
     }
     else
-        sprintf(statbuf, "[  ] ");
+	{
+		if (MINIMALMODE)
+			sprintf(statbuf, delimeterformat, "");
+		else
+			sprintf(statbuf, delimeterformat, " AC");
+	}
 }
 
-
-void getnetwork(char* stbf)
+void getnetwork(char* statbuf)
 {
     int eon, won;
 
@@ -171,7 +176,12 @@ void getnetwork(char* stbf)
     won = readIntFile(WLANON);
 
     if (eon)
-        sprintf(stbf, "[  ] ");
+	{
+        if (MINIMALMODE)
+			sprintf(statbuf, delimeterformat, "");
+		else
+			sprintf(statbuf, delimeterformat, " Connected");
+	}
     else if (won > 0)
     {
         struct iwreq req;
@@ -190,7 +200,7 @@ void getnetwork(char* stbf)
 
         // unavailable essid is mostly for error checking and never really happens but is left here to prevent segfault
         if (ioctl(sockfd, SIOCGIWESSID, &req) == -1)
-            snprintf(ssidstr, 32, "[ Unavailable ESSID ] ");
+            sprintf(ssidstr, delimeterformat, "Unavailable ESSID");
         else
             snprintf(ssidstr, req.u.essid.length + 1, "%s ", req.u.essid.pointer);
 
@@ -198,12 +208,17 @@ void getnetwork(char* stbf)
         close(sockfd);
         free(ssid);
 
-        sprintf(stbf, "[  %s ] ", ssidstr);
+		char* part;
+		part = calloc(36, sizeof(char));
+		sprintf(part, " %s", ssidstr);
+
+        sprintf(statbuf, delimeterformat, part);
+		free(part);
     }
     else if (won == 0)
-        sprintf(stbf, "[   ] ");
+        sprintf(statbuf, delimeterformat, "  ");
 	else
-		sprintf(stbf, "[ Killed ] ");
+		sprintf(statbuf, delimeterformat, "Killed");
 }
 
 void getvolume(char* statbuf) {
@@ -237,7 +252,7 @@ void getvolume(char* statbuf) {
 	volume = ((double)volume / max) * 100;
 
 	char *part;
-	part = calloc(4, sizeof(char));
+	part = calloc(12, sizeof(char));
 
 	if (!enabled)
 		strcpy(part, "");
@@ -256,28 +271,27 @@ void getvolume(char* statbuf) {
 				break;
 		}
 	}
-
-	sprintf(statbuf, "[ %s %d%% ] ", part, volume);
+	sprintf(part, "%s %d%%", part, volume);
+	sprintf(statbuf, delimeterformat, part);
 	free(part);
 }
 
 void getcapslock(char* statbuf) {
 	if (!printtostdout)
 	{
-		// get xorgs keyboard state
+		// get xorgs keyboard state and mask to get caps state
 		unsigned n;
 		XkbGetIndicatorState(dpy, XkbUseCoreKbd, &n);
-		sprintf(statbuf, "[ %s ] ", (n & 1) ? "AB"  : "ab" );
+		sprintf(statbuf, delimeterformat, (n & 1) ? "AB"  : "ab" );
 	}
 	else
-	{
-		sprintf(statbuf, "[ ab ] ");
-	}
+		// if capsmodule is enabled and x isn't running just set placeholder
+		sprintf(statbuf, delimeterformat, "ab");
 }
 
 void setstatus(){
     // only works for one display right now
-    status = calloc(300, sizeof(char));
+    status = calloc(100, sizeof(char));
     int i;
 
     strcpy(status, statusbuffer[0]);
@@ -298,9 +312,8 @@ void updatestatus()
     // create a thread for every module, and join all threads afterwards
     int i;
     for (i = 0; i < MODCOUNT + CAPSMODULE; i++)
-    {
         pthread_create(&threads[i], NULL, (void *) modules[i], statusbuffer[i]);
-    }
+
     for (i = 0; i < MODCOUNT + CAPSMODULE; i++)
         pthread_join(threads[i], NULL);
 
@@ -317,11 +330,10 @@ void siginthandler(int signo)
 	// free all status strings, previously allocated
     int i;
     for ( i = 0; i < MODCOUNT + CAPSMODULE; i++)
-    {
         free(statusbuffer[i]);
-    }
 
 	free(status);
+	free(delimeterformat);
 
 	// close connection to X server
 	if (! printtostdout)
@@ -336,9 +348,7 @@ void initstatusbuffer()
 	// allocate 30 bytes to status string locations
     int i;
     for ( i = 0; i < MODCOUNT + CAPSMODULE; i++)
-    {
         statusbuffer[i] = calloc(30, sizeof(char));
-    }
 }
 
 void checkconfig()
@@ -406,6 +416,24 @@ void parseargs(int argc, char* argv[])
 	}
 }
 
+void initvisuals()
+{
+	// based on the configured value set the delimeter
+	delimeterformat = calloc(10, sizeof(char));
+	switch(STYLE)
+	{
+		case 0:
+			strcpy(delimeterformat, "[ %s ] ");
+			break;
+		case 1:
+			strcpy(delimeterformat, "| %s "); 
+			break;
+		default:
+			strcpy(delimeterformat, "\ue0b3 %s ");
+			break;
+	}
+}
+
 // main
 //
 int main(int argc, char* argv[])
@@ -433,9 +461,13 @@ int main(int argc, char* argv[])
 	// initialise status string memory locations for set number of modules
     initstatusbuffer();
 
+	// initialise visual changes
+	initvisuals();
+
     // fill the array with pointers to statusbar module functions
 	int index;
 	index = 0;
+
 	if (CAPSMODULE)
     	modules[index++] = getcapslock;
 

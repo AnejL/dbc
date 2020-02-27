@@ -16,7 +16,7 @@
 
     // number of batteries to monitor 
 	// set BATTERYCOUNT to  0, 1 or 2
-    #define BATTERYCOUNT    1
+    #define BATTERYCOUNT   	0
     #define BAT0DIR         "/sys/class/power_supply/BAT0"
     #define BAT1DIR         "/sys/class/power_supply/BAT1"
     #define BAT0            "/sys/class/power_supply/BAT0/capacity"
@@ -24,8 +24,8 @@
 
     // network
 	// set WLAN and ETHERNET variables
-    #define WLAN            "wlp3s0"
-    #define ETHERNET        "enp0s25"
+    #define WLAN            "wlp9s0"
+    #define ETHERNET        "eno1"
     #define WLANDIR         "/sys/class/net/"WLAN
     #define ETHERNETDIR     "/sys/class/net/"ETHERNET
     #define WLANON          "/sys/class/net/"WLAN"/carrier"
@@ -36,4 +36,12 @@
     #define CARD            "default"
     #define PROFILE         "Master"
 
+	// delimeter style
+	// 0 => [ mod ]
+	// 1 => | mod |
+	// 2 => < mod <
+	#define STYLE			1
+
+	// turn shorter minimal mode on with 1 here
+	#define MINIMALMODE		0
 #endif //DBC_CONFIG_H

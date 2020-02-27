@@ -4,11 +4,13 @@ This program shows the current network status, alsa master volume, battery statu
 
 I tried numerous times to implement PulseAudio module instead of ALSA, losing all hope eventually. Maybe I will try again some time in the future (if anyone knows how to do it efficiently please contact me).
 
-This program was made and tested on the ThinkPad T480 and X230, both running Arch Linux. I have no guarantees that it will work on other laptops / operating systems even though it should. If you are interested in testing or have a problem, feel free to contact me at anej.lekse@gmail.com.
+This program was made and tested on the ThinkPad T480 and X230, both running Arch Linux. I have no guarantees that it will work on other laptops / distros even though it should. If you are interested in testing or have a problem, feel free to contact me at anej.lekse@gmail.com.
 
 Sample output:
 
 ![alt text](https://github.com/anejl/dbc/blob/master/demo.png "Sample output")
+
+New version includes 3 delimeter styles to choose from and a minimal mode, useful for low-res displays.
 
 ## Installation:
 
@@ -36,11 +38,11 @@ Usage is extremely simple, **dbc** starts the statusbar script (you can put it i
 
 Command line options:
 
-Execute **s**ingle iteration *(useful for timing, or cheesily modifying refresh interval)*
+Execute **s**ingle iteration *(useful for timing)*
 
 > dbc -s
 
-**N**o error checking *(for people who like segfaults)*
+**N**o error checking *(for testing purpouses more or less)*
 
 > dbc -n
 
@@ -48,7 +50,7 @@ Execute **s**ingle iteration *(useful for timing, or cheesily modifying refresh 
 
 > dbc -o
 
-It's possible to combine them like
+It's possible to combine options like
 
 > dbc -sno
 
@@ -68,7 +70,7 @@ It's perfectly possible to do something like this:
 
 > echo "[ $( free -h | head -2 | tail -1 | awk '{print $3}') ] " | tr -d '\n' && dbc -o
 
-Displaying the string would look something like this
+Or
 
 > xsetroot -name " $HOSTNAME | $(dbc -o)"
 
@@ -81,7 +83,9 @@ Displaying the string would look something like this
 	- disk space module
 	- memory usage module
 	- cpu usage module
-	- compact view
 - manpage entry
-- configuration of control variables in config.h
 - fix a bug with connecting usb wifi cards
+
+### Contribution and hacking
+
+Contact me at anej.lekse@gmail.com
