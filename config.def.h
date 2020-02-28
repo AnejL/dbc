@@ -1,11 +1,6 @@
 #ifndef DBC_CONFIG_H
 #define DBC_CONFIG_H
 
-    // number of modules in statusbars that doubles as number of threads
-	// if you don't add any of your own modules this shouldn't change
-	// caps lock is a special module and should not be counted in here
-    #define MODCOUNT		4
-
 	// set to 1 if you want [ ab ] / [ AB ] to show when you have caps on
 	// else set it to 0
 	#define CAPSMODULE		0
