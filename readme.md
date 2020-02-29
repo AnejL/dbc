@@ -79,6 +79,7 @@ Or
 - ensure no memory leaks
 - optimise current features 
 - add more modules and upgrade current ones
+	- X11 keyboard layout
 	- add default gateway ip to the output
 	- disk space module
 	- memory usage module
