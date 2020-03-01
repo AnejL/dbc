@@ -30,7 +30,7 @@
 	// 0 => [ mod ]
 	// 1 => | mod |
 	// 2 => < mod <
-	#define STYLE			2
+	#define STYLE			1
 
 	// turn shorter minimal mode on with 1 here
 	#define MINIMALMODE		0

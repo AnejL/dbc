@@ -15,6 +15,7 @@
 #define WLANON          "/sys/class/net/"WLAN"/carrier"
 #define ETHERNETON      "/sys/class/net/"ETHERNET"/carrier"
 
+// helper macros
 #define err(mess) { fprintf(stderr,"Error: %s.\n", mess); exit(1); }
 #define quit(mess) { fprintf(stdout,"Quitting: %s.\n", mess); exit(1); }
 

@@ -17,6 +17,7 @@ Sample output:
 ![alt text](https://github.com/anejl/dbc/blob/master/demo.png "Sample output")
 
 **dbc v2.0**
+
 New version includes 3 delimeter styles to choose from and a minimal mode, useful for low-res displays. It also supports better configuration and it's much more optimised - it only updates the necessary modules when running idle; the hungrier ones get updated only at manual refreshes.
 
 ## Installation:
@@ -27,13 +28,15 @@ Arch Linux
 
 > \# sudo pacman -S libx11 alsa-lib ttf-font-awesome
 
-Create configuration files when running for the first time with first command. Second command recompiles everything after changing config.h
+**Create configuration files when running for the first time with:**
 
 > sudo make
 
+**Recompile everything after changing config.h for changes to take place with:**
+
 > sudo make clean install
 
-Uninstallation:
+**Uninstallation:**
 
 > sudo make clean uninstall
 

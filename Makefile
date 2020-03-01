@@ -3,7 +3,6 @@ CFLAGS = -lX11 -lasound -lpthread -g -lxkbfile
 OFLAG = -O2
 CC = gcc
 
-
 LINKLOC = /usr/local/bin/dbc
 REFBARLOC = /usr/local/bin/refbar
 PWD = $(shell pwd)

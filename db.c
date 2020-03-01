@@ -311,7 +311,7 @@ void getkeyboardlayout(char* statbuf)
 
 	if (printtostdout)
 	{
-		sprintf(statbuf, delimeterformat, "kmp");
+		sprintf(statbuf, delimeterformat, "term");
 		return;
 	}
 
