@@ -315,8 +315,7 @@ void getkeyboardlayout(char* statbuf)
 		return;
 	}
 
-	// uncomment lock and unlock if you are using any other X11 modules
-	// XLockDisplay(dpy); 
+	XLockDisplay(dpy); 
 
     XkbRF_VarDefsRec vd;
     XkbRF_GetNamesProp(dpy, NULL, &vd);
@@ -334,7 +333,7 @@ void getkeyboardlayout(char* statbuf)
 			toUpper(part);
 	}
 
-	// XUnlockDisplay(dpy);
+	XUnlockDisplay(dpy);
 	
 	sprintf(statbuf, delimeterformat, part);
 	free(part);
