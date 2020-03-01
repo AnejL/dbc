@@ -5,6 +5,9 @@
 	// else set it to 0
 	#define CAPSMODULE		0
 
+	// set to 1 if you want the first module to be your hostname if not, set to 0
+	#define HOSTNAMEMODULE	1
+
 	// number of seconds between the automatic refresh
 	// set REFRESHINTERVAL to custom value
 	#define REFRESHINTERVAL 20

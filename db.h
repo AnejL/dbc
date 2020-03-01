@@ -18,13 +18,19 @@
 #define err(mess) { fprintf(stderr,"Error: %s.\n", mess); exit(1); }
 #define quit(mess) { fprintf(stdout,"Quitting: %s.\n", mess); exit(1); }
 
+// ULSTART	- when lock is set to ULSTART all the modules will be set
+// ULINT	- when lock is set to ULINT all the heavyweight modules will be set
+#define ULINT			21
+#define ULSTART			22
+#define LOCK(level) { if (lock < level) return; }
+
 // thread array (one thread for each module) and array of strings for each status module
 // MODCOUNT + CAPSMODULE is used because caps lock module is not useful for everybody so it can be switched to 0
-pthread_t threads[MODCOUNT];
-char *statusbuffer[MODCOUNT];
+pthread_t threads[MODCOUNT + HOSTNAMEMODULE];
+char *statusbuffer[MODCOUNT + HOSTNAMEMODULE];
 
 // array of function pointers argument is a single statusbuffer[] element
-void (*modules[MODCOUNT]) (char* statbuf);
+void (*modules[MODCOUNT + HOSTNAMEMODULE]) (char* statbuf);
 
 // final status char* that gets written to xsetroot
 char *status;
@@ -37,3 +43,6 @@ int singleiter, noerror, printtostdout;
 
 // address of module format string, used in every module and defined in initvisuals
 char* delimeterformat;
+
+// lock variable that controls which modules get set/updated
+int lock;

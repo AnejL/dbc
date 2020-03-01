@@ -20,8 +20,6 @@
 #include "config.h"
 #include "db.h"
 
-int lock;
-
 // general purpouse helper functions
 //
 int readIntFile(char *path)
@@ -78,6 +76,18 @@ int isDir(char *path)
     }
 }
 
+void toUpper(char* str)
+{
+	int i;
+	i = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] > 96)
+			str[i] = str[i] - 32;
+		i++;
+	}
+}
+
 // statusbar specific helper functions
 // initialise connection to X server
 void initdisplay()
@@ -111,7 +121,7 @@ void getdatetime(char* statbuf)
 	else
     	strftime(part, 30, "%a %d %b %Y %H:%M:%S", ptm);
 
-	// a cheesy but efficient way to get my original style even though it's a bit dirty
+	// a cheesy but efficient way to get my original style
 	if (!STYLE)
 		sprintf(statbuf, "| %s ", part);
 	else
@@ -123,8 +133,7 @@ void getdatetime(char* statbuf)
 void getpower(char* statbuf)
 {
 	// gets set every 10 iterations
-	if (lock < 10)
-		return;
+	LOCK(10);
 
     // if you choose to monitor batteries get capacity levels for max 2 batteries
     if (BATTERYCOUNT > 0)
@@ -181,8 +190,7 @@ void getpower(char* statbuf)
 void getnetwork(char* statbuf)
 {
 	// gets set every 10 iterations
-	if (lock < 10)
-		return;
+	LOCK(10);
 
 	int eon, won;
 
@@ -238,9 +246,8 @@ void getnetwork(char* statbuf)
 
 void getvolume(char* statbuf)
 {
-	// gets set only at interrupt
-	if (lock < 21)
-		return;	
+	// gets unlocked only at interrupt
+	LOCK(ULINT);
 
     // select default master profile from alsa devices
     long min, max, volume = 0;
@@ -297,88 +304,63 @@ void getvolume(char* statbuf)
 	free(part);
 }
 
-void getcapslock(char* statbuf)
-{
-	if (!printtostdout)
-	{
-		// get xorgs keyboard state and mask to get caps state
-		unsigned n;
-		XkbGetIndicatorState(dpy, XkbUseCoreKbd, &n);
-		sprintf(statbuf, delimeterformat, (n & 1) ? "AB"  : "ab" );
-	}
-	else
-	{
-		XLockDisplay(dpy); 
-		// if capsmodule is enabled and x isn't running just set placeholder
-		sprintf(statbuf, delimeterformat, "ab");
-		XUnlockDisplay(dpy);
-	}
-}
-
-void toUpper(char* str)
-{
-	int i;
-	i = 0;
-	while (str[i] != '\0')
-	{
-		if (str[i] > 96)
-			str[i] = str[i] - 32;
-		i++;
-	}
-}
 
 void getkeyboardlayout(char* statbuf)
 {
-	if (lock < 21)
-		return;
-	
+	LOCK(ULINT);
+
 	if (printtostdout)
 	{
 		sprintf(statbuf, delimeterformat, "kmp");
 		return;
 	}
 
-	XLockDisplay(dpy); 
-
-	XkbStateRec state;
-    XkbGetState(dpy, XkbUseCoreKbd, &state);
-
-    XkbDescPtr desc = XkbGetKeyboard(dpy, XkbAllComponentsMask, XkbUseCoreKbd);
+	// uncomment lock and unlock if you are using any other X11 modules
+	// XLockDisplay(dpy); 
 
     XkbRF_VarDefsRec vd;
     XkbRF_GetNamesProp(dpy, NULL, &vd);
 			
-	char *tok = strtok(vd.layout, ",");
-
-    for (int i = 0; i < state.group; i++)
-	{
-        tok = strtok(NULL, ",");
-        if (tok == NULL) 
-			break;
-    }
+	char* part;
+	part = calloc(4, sizeof(char));
+	strcpy(part, vd.layout);
 
 	if (CAPSMODULE)
 	{
-		// get xorgs keyboard state and mask to get caps state
+		// get caps state and convert to uppercase if set
 		unsigned n;
 		XkbGetIndicatorState(dpy, XkbUseCoreKbd, &n);
 		if (n & 1)
-			toUpper(tok);
+			toUpper(part);
 	}
 
-	XUnlockDisplay(dpy);
+	// XUnlockDisplay(dpy);
 	
-	sprintf(statbuf, delimeterformat, tok);
+	sprintf(statbuf, delimeterformat, part);
+	free(part);
 }
 
+void getmyhostname(char* statbuf)
+{
+	LOCK(ULSTART);
+
+	char *part;
+	part = calloc(20, sizeof(char));
+
+	if (gethostname(part, 20) < 0)
+		quit("problem getting hostname");
+
+	sprintf(statbuf, delimeterformat, part);
+	free(part);
+}
 void setstatus()
 {
     // only works for one display right now
-    status = calloc(100, sizeof(char));
+    status = calloc(150, sizeof(char));
     int i;
 
     strcpy(status, statusbuffer[0]);
-    for (i = 1; i < MODCOUNT; i++)
+    for (i = 1; i < MODCOUNT + HOSTNAMEMODULE; i++)
         strcat(status, statusbuffer[i]);
 
 	if (! printtostdout)
@@ -394,10 +376,10 @@ void updatestatus()
 {
     // create a thread for every module, and join all threads afterwards
     int i;
-    for (i = 0; i < MODCOUNT; i++)
+    for (i = 0; i < MODCOUNT + HOSTNAMEMODULE; i++)
         pthread_create(&threads[i], NULL, (void *) modules[i], statusbuffer[i]);
 
-    for (i = 0; i < MODCOUNT; i++)
+    for (i = 0; i < MODCOUNT + HOSTNAMEMODULE; i++)
         pthread_join(threads[i], NULL);
 
     setstatus();
@@ -405,7 +387,7 @@ void updatestatus()
 
 void refreshstatus(int signo)
 {
-	lock = 21;
+	lock = ULINT;
     updatestatus();
 }
 
@@ -413,11 +395,11 @@ void siginthandler(int signo)
 {
 	// free all status strings, previously allocated
     int i;
-    for ( i = 0; i < MODCOUNT; i++)
+    for ( i = 0; i < MODCOUNT + HOSTNAMEMODULE; i++)
         free(statusbuffer[i]);
 
 	free(status);
-	free(delimeterformat);
+	free(delimeterformat); 
 
 	// close connection to X server
 	if (! printtostdout)
@@ -431,7 +413,7 @@ void initstatusbuffer()
 {
 	// allocate 30 bytes to status string locations
     int i;
-    for ( i = 0; i < MODCOUNT; i++)
+    for ( i = 0; i < MODCOUNT + HOSTNAMEMODULE; i++)
         statusbuffer[i] = calloc(30, sizeof(char));
 }
 
@@ -522,9 +504,7 @@ void initvisuals()
 //
 int main(int argc, char* argv[])
 {
-	// lock counts iterations from 0 to 20
-	// 21 gets set at interrupt and start and updates all modules
-	lock = 21;
+	lock = ULSTART;
 
 	singleiter = 0;
 	noerror = 0;
@@ -556,10 +536,8 @@ int main(int argc, char* argv[])
 	int index;
 	index = 0;
 
-	
-	//if (CAPSMODULE)
-    //	modules[index++] = getcapslock;
-
+	if (HOSTNAMEMODULE)
+		modules[index++] = getmyhostname;
     modules[index++] = getnetwork;
     modules[index++] = getvolume;
     modules[index++] = getpower;
@@ -574,7 +552,7 @@ int main(int argc, char* argv[])
 		{
             updatestatus();
 			lock++;
-			if (lock >= 20)
+			if (lock >= ULINT - 1)
 				lock = 0;
 		}
     }
