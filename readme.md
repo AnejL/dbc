@@ -1,16 +1,23 @@
-# Yet another needlessly complicated status bar for dwm.
+# dbc - yet another status bar for dwm written in C
 
-This program shows the current network status, alsa master volume, battery status and current date... and does it on multple threads.
+This program shows these values by default:
 
-I tried numerous times to implement PulseAudio module instead of ALSA, losing all hope eventually. Maybe I will try again some time in the future (if anyone knows how to do it efficiently please contact me).
+- hostname (optional)
+- current network card status
+- alsa volume
+- power suppy status
+- current X keymap
+- and current date...
 
-This program was made and tested on the ThinkPad T480 and X230, both running Arch Linux. I have no guarantees that it will work on other laptops / distros even though it should. If you are interested in testing or have a problem, feel free to contact me at anej.lekse@gmail.com.
+**...and does it on multple threads.**
+
 
 Sample output:
 
 ![alt text](https://github.com/anejl/dbc/blob/master/demo.png "Sample output")
 
-New version includes 3 delimeter styles to choose from and a minimal mode, useful for low-res displays.
+**dbc v2.0**
+New version includes 3 delimeter styles to choose from and a minimal mode, useful for low-res displays. It also supports better configuration and it's much more optimised - it only updates the necessary modules when running idle; the hungrier ones get updated only at manual refreshes.
 
 ## Installation:
 
@@ -20,11 +27,9 @@ Arch Linux
 
 > \# sudo pacman -S libx11 alsa-lib ttf-font-awesome
 
-Create config.h file for storing local configurations
+Create configuration files when running for the first time with first command. Second command recompiles everything after changing config.h
 
 > sudo make
-
-Reinstalling after changing config.h
 
 > sudo make clean install
 
@@ -34,7 +39,10 @@ Uninstallation:
 
 ## Usage
 
-Usage is extremely simple, **dbc** starts the statusbar script (you can put it in xinitrc, make a systemd service, etc.).
+Usage is extremely simple it consists of **two commands**, 
+
+- **dbc** starts the statusbar *(you can put it in xinitrc, make a systemd service, etc.)*
+- **refbar** refreshes the statusbar *(use that with your hotkey daemon)*
 
 Command line options:
 
@@ -54,15 +62,9 @@ It's possible to combine options like
 
 > dbc -sno
 
-When you want to refresh the statusbar simply type **refbar** into the command line, your preferred program running tool (dmenu, rofi, etc.) or in your shell scripts.
-
 ## Configuration
 
-After you run 
-
-> sudo make 
-
-installer generates config.h file. Edit the *quite self-explanatory* values in that file, **recompile** and run as usual.
+Installer generates config.h file. Edit the *quite self-explanatory* values in that file, **recompile** and run as usual.
 
 ## Combining dbc with shell scripts
 
@@ -79,14 +81,17 @@ Or
 - ensure no memory leaks
 - optimise current features 
 - add more modules and upgrade current ones
-	- X11 keyboard layout
 	- add default gateway ip to the output
 	- disk space module
 	- memory usage module
 	- cpu usage module
+- add configurable modules
 - manpage entry
+- test on other distros than Arch
 - fix a bug with connecting usb wifi cards
 
 ### Contribution and hacking
 
-Contact me at anej.lekse@gmail.com
+This program was made and tested on the ThinkPad T480 and X230, both running Arch Linux. I have no guarantees that it will work on other laptops / distros even though it should. If you are interested in testing or have a problem, feel free to contact me.
+
+I also tried numerous times to implement PulseAudio module instead of ALSA, losing all hope eventually. Maybe I will try again some time in the future (if anyone knows how to do it efficiently please contact me at anej.lekse@gmail.com).
