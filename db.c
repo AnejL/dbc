@@ -315,6 +315,18 @@ void getcapslock(char* statbuf)
 	}
 }
 
+void toUpper(char* str)
+{
+	int i;
+	i = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] > 96)
+			str[i] = str[i] - 32;
+		i++;
+	}
+}
+
 void getkeyboardlayout(char* statbuf)
 {
 	if (lock < 21)
@@ -335,9 +347,7 @@ void getkeyboardlayout(char* statbuf)
 
     XkbRF_VarDefsRec vd;
     XkbRF_GetNamesProp(dpy, NULL, &vd);
-
-	XUnlockDisplay(dpy);
-    
+			
 	char *tok = strtok(vd.layout, ",");
 
     for (int i = 0; i < state.group; i++)
@@ -346,6 +356,17 @@ void getkeyboardlayout(char* statbuf)
         if (tok == NULL) 
 			break;
     }
+
+	if (CAPSMODULE)
+	{
+		// get xorgs keyboard state and mask to get caps state
+		unsigned n;
+		XkbGetIndicatorState(dpy, XkbUseCoreKbd, &n);
+		if (n & 1)
+			toUpper(tok);
+	}
+
+	XUnlockDisplay(dpy);
 	
 	sprintf(statbuf, delimeterformat, tok);
 }
@@ -357,7 +378,7 @@ void setstatus()
     int i;
 
     strcpy(status, statusbuffer[0]);
-    for (i = 1; i < MODCOUNT + CAPSMODULE; i++)
+    for (i = 1; i < MODCOUNT; i++)
         strcat(status, statusbuffer[i]);
 
 	if (! printtostdout)
@@ -373,10 +394,10 @@ void updatestatus()
 {
     // create a thread for every module, and join all threads afterwards
     int i;
-    for (i = 0; i < MODCOUNT + CAPSMODULE; i++)
+    for (i = 0; i < MODCOUNT; i++)
         pthread_create(&threads[i], NULL, (void *) modules[i], statusbuffer[i]);
 
-    for (i = 0; i < MODCOUNT + CAPSMODULE; i++)
+    for (i = 0; i < MODCOUNT; i++)
         pthread_join(threads[i], NULL);
 
     setstatus();
@@ -392,7 +413,7 @@ void siginthandler(int signo)
 {
 	// free all status strings, previously allocated
     int i;
-    for ( i = 0; i < MODCOUNT + CAPSMODULE; i++)
+    for ( i = 0; i < MODCOUNT; i++)
         free(statusbuffer[i]);
 
 	free(status);
@@ -410,7 +431,7 @@ void initstatusbuffer()
 {
 	// allocate 30 bytes to status string locations
     int i;
-    for ( i = 0; i < MODCOUNT + CAPSMODULE; i++)
+    for ( i = 0; i < MODCOUNT; i++)
         statusbuffer[i] = calloc(30, sizeof(char));
 }
 
@@ -535,8 +556,9 @@ int main(int argc, char* argv[])
 	int index;
 	index = 0;
 
-	if (CAPSMODULE)
-    	modules[index++] = getcapslock;
+	
+	//if (CAPSMODULE)
+    //	modules[index++] = getcapslock;
 
     modules[index++] = getnetwork;
     modules[index++] = getvolume;

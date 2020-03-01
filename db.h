@@ -20,11 +20,11 @@
 
 // thread array (one thread for each module) and array of strings for each status module
 // MODCOUNT + CAPSMODULE is used because caps lock module is not useful for everybody so it can be switched to 0
-pthread_t threads[MODCOUNT + CAPSMODULE];
-char *statusbuffer[MODCOUNT + CAPSMODULE];
+pthread_t threads[MODCOUNT];
+char *statusbuffer[MODCOUNT];
 
 // array of function pointers argument is a single statusbuffer[] element
-void (*modules[MODCOUNT + CAPSMODULE]) (char* statbuf);
+void (*modules[MODCOUNT]) (char* statbuf);
 
 // final status char* that gets written to xsetroot
 char *status;
