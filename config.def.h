@@ -10,7 +10,7 @@
 
 	// number of seconds between the automatic refresh
 	// set REFRESHINTERVAL to custom value
-	#define REFRESHINTERVAL 20
+	#define REFRESHINTERVAL 5
 
     // number of batteries to monitor 
 	// set BATTERYCOUNT to  0, 1 or 2
