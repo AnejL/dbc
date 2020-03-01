@@ -12,12 +12,15 @@
 #include <pthread.h>
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
+#include <X11/extensions/XKBrules.h>
 #include <sys/ioctl.h>
 #include <linux/wireless.h>
 
 // config and definitions files
 #include "config.h"
 #include "db.h"
+
+int lock;
 
 // general purpouse helper functions
 //
@@ -64,7 +67,8 @@ int readShortIntFile(char *path)
     return atoi(buf);
 }
 
-int isDir(char *path) {
+int isDir(char *path)
+{
 	int fd;
     if ((fd = open(path, O_DIRECTORY)) == -1 )
         return 0;
@@ -76,7 +80,10 @@ int isDir(char *path) {
 
 // statusbar specific helper functions
 // initialise connection to X server
-void initdisplay(){
+void initdisplay()
+{
+	if (XInitThreads() < 1)
+		quit("threads can't be initialised");
     if (!(dpy = XOpenDisplay(NULL)))
         quit("display can't be opened...");
 }
@@ -102,7 +109,7 @@ void getdatetime(char* statbuf)
 	if (MINIMALMODE)
 		strftime(part, 30, "%d.%m.%Y %H:%M", ptm);
 	else
-    	strftime(part, 30, "%a %d %b %Y %H:%M", ptm);
+    	strftime(part, 30, "%a %d %b %Y %H:%M:%S", ptm);
 
 	// a cheesy but efficient way to get my original style even though it's a bit dirty
 	if (!STYLE)
@@ -113,7 +120,11 @@ void getdatetime(char* statbuf)
 	free(part);
 }
 
-void getpower(char* statbuf) {
+void getpower(char* statbuf)
+{
+	// gets set every 10 iterations
+	if (lock < 10)
+		return;
 
     // if you choose to monitor batteries get capacity levels for max 2 batteries
     if (BATTERYCOUNT > 0)
@@ -169,7 +180,11 @@ void getpower(char* statbuf) {
 
 void getnetwork(char* statbuf)
 {
-    int eon, won;
+	// gets set every 10 iterations
+	if (lock < 10)
+		return;
+
+	int eon, won;
 
     // read and check the current active device
     eon = readIntFile(ETHERNETON);
@@ -221,7 +236,12 @@ void getnetwork(char* statbuf)
 		sprintf(statbuf, delimeterformat, "Killed");
 }
 
-void getvolume(char* statbuf) {
+void getvolume(char* statbuf)
+{
+	// gets set only at interrupt
+	if (lock < 21)
+		return;	
+
     // select default master profile from alsa devices
     long min, max, volume = 0;
 	int enabled;
@@ -271,12 +291,14 @@ void getvolume(char* statbuf) {
 				break;
 		}
 	}
+	
 	sprintf(part, "%s %d%%", part, volume);
 	sprintf(statbuf, delimeterformat, part);
 	free(part);
 }
 
-void getcapslock(char* statbuf) {
+void getcapslock(char* statbuf)
+{
 	if (!printtostdout)
 	{
 		// get xorgs keyboard state and mask to get caps state
@@ -285,11 +307,51 @@ void getcapslock(char* statbuf) {
 		sprintf(statbuf, delimeterformat, (n & 1) ? "AB"  : "ab" );
 	}
 	else
+	{
+		XLockDisplay(dpy); 
 		// if capsmodule is enabled and x isn't running just set placeholder
 		sprintf(statbuf, delimeterformat, "ab");
+		XUnlockDisplay(dpy);
+	}
 }
 
-void setstatus(){
+void getkeyboardlayout(char* statbuf)
+{
+	if (lock < 21)
+		return;
+	
+	if (printtostdout)
+	{
+		sprintf(statbuf, delimeterformat, "kmp");
+		return;
+	}
+
+	XLockDisplay(dpy); 
+
+	XkbStateRec state;
+    XkbGetState(dpy, XkbUseCoreKbd, &state);
+
+    XkbDescPtr desc = XkbGetKeyboard(dpy, XkbAllComponentsMask, XkbUseCoreKbd);
+
+    XkbRF_VarDefsRec vd;
+    XkbRF_GetNamesProp(dpy, NULL, &vd);
+
+	XUnlockDisplay(dpy);
+    
+	char *tok = strtok(vd.layout, ",");
+
+    for (int i = 0; i < state.group; i++)
+	{
+        tok = strtok(NULL, ",");
+        if (tok == NULL) 
+			break;
+    }
+	
+	sprintf(statbuf, delimeterformat, tok);
+}
+
+void setstatus()
+{
     // only works for one display right now
     status = calloc(100, sizeof(char));
     int i;
@@ -322,6 +384,7 @@ void updatestatus()
 
 void refreshstatus(int signo)
 {
+	lock = 21;
     updatestatus();
 }
 
@@ -438,6 +501,10 @@ void initvisuals()
 //
 int main(int argc, char* argv[])
 {
+	// lock counts iterations from 0 to 20
+	// 21 gets set at interrupt and start and updates all modules
+	lock = 21;
+
 	singleiter = 0;
 	noerror = 0;
 	printtostdout = 0;
@@ -448,7 +515,7 @@ int main(int argc, char* argv[])
 
 	// if printtostdout is not set write to xsetroot
 	if (! printtostdout)
-    	initdisplay();
+		initdisplay();
 
 	// if error checking is enabled check them
 	if (! noerror)
@@ -474,6 +541,7 @@ int main(int argc, char* argv[])
     modules[index++] = getnetwork;
     modules[index++] = getvolume;
     modules[index++] = getpower;
+    modules[index++] = getkeyboardlayout;
     modules[index++] = getdatetime;
 
     if (singleiter)
@@ -481,7 +549,12 @@ int main(int argc, char* argv[])
     else
     {
         for (;; sleep(REFRESHINTERVAL))
+		{
             updatestatus();
+			lock++;
+			if (lock >= 20)
+				lock = 0;
+		}
     }
 
     return 0;

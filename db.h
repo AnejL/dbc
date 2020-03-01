@@ -1,7 +1,7 @@
 // number of modules in statusbars that doubles as number of threads
 // if you don't add any of your own modules this shouldn't change
 // caps lock is a special module and should not be counted in here
-#define MODCOUNT		4
+#define MODCOUNT		5
 
 // battery dirs
 #define BAT0DIR         "/sys/class/power_supply/BAT0"
