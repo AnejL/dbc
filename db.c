@@ -192,7 +192,7 @@ void getpower(char* statbuf)
 void getnetwork(char* statbuf)
 {
 	// gets set at tenth iteration
-	LOCK(10);
+	LOCK(ULSTART);
 	DEBUG("network");
 
 	int eon, won;

@@ -22,8 +22,8 @@
 #define DEBUGINT(num) { if(debug) fprintf(stderr, "Debug:\t%d\n", num); }  
 
 // lock variables
-#define ULINT			13
-#define ULSTART			14
+#define ULINT			31
+#define ULSTART			32
 
 // abandon all hope, ye who enter here
 #define LOCK(level) { 																	\
