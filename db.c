@@ -132,7 +132,7 @@ void getdatetime(char* statbuf)
 
 void getpower(char* statbuf)
 {
-	// gets automatically set at fifth iteration
+	// gets set at 5th iteration
 	LOCK(5);
 
 	DEBUG("power");
@@ -191,8 +191,8 @@ void getpower(char* statbuf)
 
 void getnetwork(char* statbuf)
 {
-	// gets set at tenth iteration
-	LOCK(ULSTART);
+	// gets set at 10th iteration
+	LOCK(10);
 	DEBUG("network");
 
 	int eon, won;
@@ -346,7 +346,6 @@ void getkeyboardlayout(char* statbuf)
 
 void getmyhostname(char* statbuf)
 {
-	//fprintf(stderr, "lock: %d, level: %d\n", lock, ULSTART);
 	LOCK(ULSTART);
 
 	DEBUG("hostname");
