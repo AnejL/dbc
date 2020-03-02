@@ -18,15 +18,24 @@
 // helper macros
 #define err(mess) { fprintf(stderr,"Error: %s.\n", mess); exit(1); }
 #define quit(mess) { fprintf(stdout,"Quitting: %s.\n", mess); exit(1); }
+#define DEBUG(mess) { if(debug) { fprintf(stderr, "Debug:\t%s\n", mess); } }  
+#define DEBUGINT(num) { if(debug) fprintf(stderr, "Debug:\t%d\n", num); }  
 
-// ULSTART	- when lock is set to ULSTART all the modules will be set
-// ULINT	- when lock is set to ULINT all the heavyweight modules will be set
-#define ULINT			21
-#define ULSTART			22
-#define LOCK(level) { if (lock < level) return; }
+// lock variables
+#define ULINT			13
+#define ULSTART			14
+
+// abandon all hope, ye who enter here
+#define LOCK(level) { 																	\
+	if ((level != lock && lock != ULSTART) && (lock != ULINT || level == ULSTART )) 	\
+		return; 																	\
+}
+
+#define LOCKSTART() { if ( lock != ULSTART ) return; }
+
+//#define LOCKINT(level) { if (lock != level && level < ULINT) return; }
 
 // thread array (one thread for each module) and array of strings for each status module
-// MODCOUNT + CAPSMODULE is used because caps lock module is not useful for everybody so it can be switched to 0
 pthread_t threads[MODCOUNT + HOSTNAMEMODULE];
 char *statusbuffer[MODCOUNT + HOSTNAMEMODULE];
 
@@ -40,7 +49,7 @@ char *status;
 static Display *dpy;
 
 // single iteration execution, error supressing and printing to stdout control variables
-int singleiter, noerror, printtostdout;
+int singleiter, noerror, printtostdout, debug;
 
 // address of module format string, used in every module and defined in initvisuals
 char* delimeterformat;

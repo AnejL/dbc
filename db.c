@@ -132,8 +132,10 @@ void getdatetime(char* statbuf)
 
 void getpower(char* statbuf)
 {
-	// gets set every 10 iterations
-	LOCK(10);
+	// gets automatically set at fifth iteration
+	LOCK(5);
+
+	DEBUG("power");
 
     // if you choose to monitor batteries get capacity levels for max 2 batteries
     if (BATTERYCOUNT > 0)
@@ -189,8 +191,9 @@ void getpower(char* statbuf)
 
 void getnetwork(char* statbuf)
 {
-	// gets set every 10 iterations
+	// gets set at tenth iteration
 	LOCK(10);
+	DEBUG("network");
 
 	int eon, won;
 
@@ -248,6 +251,7 @@ void getvolume(char* statbuf)
 {
 	// gets unlocked only at interrupt
 	LOCK(ULINT);
+	DEBUG("volume");
 
     // select default master profile from alsa devices
     long min, max, volume = 0;
@@ -308,6 +312,7 @@ void getvolume(char* statbuf)
 void getkeyboardlayout(char* statbuf)
 {
 	LOCK(ULINT);
+	DEBUG("kbd");
 
 	if (printtostdout)
 	{
@@ -341,7 +346,10 @@ void getkeyboardlayout(char* statbuf)
 
 void getmyhostname(char* statbuf)
 {
+	//fprintf(stderr, "lock: %d, level: %d\n", lock, ULSTART);
 	LOCK(ULSTART);
+
+	DEBUG("hostname");
 
 	char *part;
 	part = calloc(20, sizeof(char));
@@ -354,6 +362,8 @@ void getmyhostname(char* statbuf)
 }
 void setstatus()
 {
+	DEBUG("-----");
+
     // only works for one display right now
     status = calloc(150, sizeof(char));
     int i;
@@ -469,6 +479,9 @@ void parseargs(int argc, char* argv[])
 						singleiter = 1;
 						printtostdout = 1;
 						break;
+					case 'd':
+						debug = 1;
+						break;
 					default:
 						printf("Argument option \"%c\" is not recognised!\n", argv[i][j]);
 						quit("");
@@ -549,10 +562,12 @@ int main(int argc, char* argv[])
     {
         for (;; sleep(REFRESHINTERVAL))
 		{
+			DEBUGINT(lock);
             updatestatus();
+
 			lock++;
-			if (lock >= ULINT - 1)
-				lock = 0;
+			if (lock >= ULINT)
+				lock = 1;
 		}
     }
 
