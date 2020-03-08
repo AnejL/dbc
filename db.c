@@ -468,7 +468,7 @@ void checkconfig()
 	// check wlan and ethernet
 	if (! isDir(WLANDIR))
 	{
-		printf("WiFi interface with name %s not found!\nUse \"ip a\" to get its name.\n", WLAN);
+		printf("WiFi interface with name %s not found!\nUse \"ip a\" to get its name.\n", WLAN);
 		quit("Configuration checking failed!");
 	}	
 	if (! isDir(ETHERNETDIR))
