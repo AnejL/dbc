@@ -117,16 +117,18 @@ void getdatetime(char* statbuf)
 	char* part;
 	part = calloc(30, sizeof(char));
 
-	if (MINIMALMODE)
+	#if MINIMALMODE
 		strftime(part, 30, "%d.%m.%Y %H:%M", ptm);
-	else
+	#else
     	strftime(part, 30, "%a %d %b %Y %H:%M:%S", ptm);
+	#endif
 
 	// a cheesy but efficient way to get my original style
-	if (!STYLE)
+	#if !STYLE
 		sprintf(statbuf, "| %s ", part);
-	else
+	#else
 		sprintf(statbuf, delimeterformat, part);
+	#endif  
 
 	free(part);
 }
@@ -139,26 +141,23 @@ void getpower(char* statbuf)
 	DEBUG("power");
 
     // if you choose to monitor batteries get capacity levels for max 2 batteries
-    if (BATTERYCOUNT > 0)
-    {
-        int capacity;
+	#if BATTERYCOUNT > 0
+        
+		int capacity;
 		
         capacity = readShortIntFile(BAT0);
 
-        if (BATTERYCOUNT > 1)
-        {
+		#if BATTERYCOUNT > 1
 			// division by 2 in binary
             capacity = (capacity + readShortIntFile(BAT1)) >> 1;
-        }
+		#endif
 
 		char *part;
 		part = calloc(10, sizeof(char));
-		if (MINIMALMODE)
-		{
+
+		#if MINIMALMODE == 1
 			sprintf(part, "%d", capacity);
-		}
-		else
-		{
+		#else
 			switch (capacity / 25)
 			{
 				case 0:
@@ -174,20 +173,19 @@ void getpower(char* statbuf)
 					strcpy(part, "");
 					break;
 			}
-
 			sprintf(part, "%s %d%%", part, capacity); 	
-		}
+		#endif
 
         sprintf(statbuf, delimeterformat, part);
 		free(part);
-    }
-    else
-	{
-		if (MINIMALMODE)
+    
+	#else
+		#if MINIMALMODE == 1
 			sprintf(statbuf, delimeterformat, "");
-		else
+		#else
 			sprintf(statbuf, delimeterformat, " AC");
-	}
+		#endif
+	#endif
 }
 
 void getnetwork(char* statbuf)
@@ -203,10 +201,11 @@ void getnetwork(char* statbuf)
 
     if (eon)
 	{
-        if (MINIMALMODE)
+		#if MINIMALMODE == 1
 			sprintf(statbuf, delimeterformat, "");
-		else
+		#else
 			sprintf(statbuf, delimeterformat, " Connected");
+		#endif
 	}
     else if (won > 0)
     {
@@ -344,21 +343,23 @@ void getkeyboardlayout(char* statbuf)
 	free(part);
 }
 
-void getmyhostname(char* statbuf)
-{
-	LOCK(ULSTART, 1);
+#if HOSTNAMEMODULE == 1
+	void getmyhostname(char* statbuf)
+	{
+		LOCK(ULSTART, 1);
 
-	DEBUG("hostname");
+		DEBUG("hostname");
 
-	char *part;
-	part = calloc(20, sizeof(char));
+		char *part;
+		part = calloc(20, sizeof(char));
 
-	if (gethostname(part, 20) < 0)
-		quit("problem getting hostname");
+		if (gethostname(part, 20) < 0)
+			quit("problem getting hostname");
 
-	sprintf(statbuf, delimeterformat, part);
-	free(part);
-}
+		sprintf(statbuf, delimeterformat, part);
+		free(part);
+	}
+#endif
 
 void getmemusage(char* statbuf)
 {
@@ -567,8 +568,10 @@ int main(int argc, char* argv[])
 	int index;
 	index = 0;
 
-	if (HOSTNAMEMODULE)
+	#if HOSTNAMEMODULE
 		modules[index++] = getmyhostname;
+	#endif
+
     modules[index++] = getmemusage;
     modules[index++] = getnetwork;
     modules[index++] = getvolume;
