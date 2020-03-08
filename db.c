@@ -77,17 +77,19 @@ int isDir(char *path)
     }
 }
 
-void toUpper(char* str)
-{
-	int i;
-	i = 0;
-	while (str[i] != '\0')
+#if CAPSMODULE
+	void toUpper(char* str)
 	{
-		if (str[i] > 96)
-			str[i] = str[i] - 32;
-		i++;
+		int i;
+		i = 0;
+		while (str[i] != '\0')
+		{
+			if (str[i] > 96)
+				str[i] = str[i] - 32;
+			i++;
+		}
 	}
-}
+#endif
 
 // statusbar specific helper functions
 // initialise connection to X server
@@ -328,14 +330,13 @@ void getkeyboardlayout(char* statbuf)
 	part = calloc(4, sizeof(char));
 	strcpy(part, vd.layout);
 
-	if (CAPSMODULE)
-	{
+	#if CAPSMODULE
 		// get caps state and convert to uppercase if set
 		unsigned n;
 		XkbGetIndicatorState(dpy, XkbUseCoreKbd, &n);
 		if (n & 1)
 			toUpper(part);
-	}
+	#endif
 
 	XUnlockDisplay(dpy);
 	
