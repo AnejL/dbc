@@ -3,6 +3,7 @@
 This program shows these values by default:
 
 - hostname (optional)
+- used memory
 - current network card status
 - alsa volume
 - power suppy status
@@ -81,13 +82,9 @@ Or
 
 ## TODO:
 
-- ensure no memory leaks
 - optimise current features 
 - add more modules and upgrade current ones
-	- add default gateway ip to the output
-	- disk space module
-	- memory usage module
-	- cpu usage module
+	- redo network module to read default route by itself 
 - add configurable modules
 - manpage entry
 - test on other distros than Arch
