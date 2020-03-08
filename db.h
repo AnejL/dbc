@@ -1,7 +1,7 @@
 // number of modules in statusbars that doubles as number of threads
 // if you don't add any of your own modules this shouldn't change
 // caps lock is a special module and should not be counted in here
-#define MODCOUNT		5
+#define MODCOUNT		6
 
 // battery dirs
 #define BAT0DIR         "/sys/class/power_supply/BAT0"
@@ -25,15 +25,20 @@
 #define ULINT			31
 #define ULSTART			32
 
-// abandon all hope, ye who enter here
-#define LOCK(level) { 																	\
-	if ((level != lock && lock != ULSTART) && (lock != ULINT || level == ULSTART )) 	\
-		return; 																	\
-}
+/* abandon all hope, ye who enter here
+#define LOCK(level, lockatint) { \
+if ( (lock % level == 0) || (lock == ULINT && lockatint == 0 ) || lock == ULSTART ) {} \
+else \
+	return; \
+} \
+*/
+
+#define LOCK(level, lockatint) { \
+if ( lock % level && (lock != ULINT || lockatint ) && lock != ULSTART ) \
+	return; \
+} \
 
 #define LOCKSTART() { if ( lock != ULSTART ) return; }
-
-//#define LOCKINT(level) { if (lock != level && level < ULINT) return; }
 
 // thread array (one thread for each module) and array of strings for each status module
 pthread_t threads[MODCOUNT + HOSTNAMEMODULE];

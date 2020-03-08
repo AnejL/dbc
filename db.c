@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/sysinfo.h>
 #include <alsa/asoundlib.h>
 #include <alsa/mixer.h>
 #include <pthread.h>
@@ -133,7 +134,7 @@ void getdatetime(char* statbuf)
 void getpower(char* statbuf)
 {
 	// gets set at 5th iteration
-	LOCK(5);
+	LOCK(30, 1);
 
 	DEBUG("power");
 
@@ -191,8 +192,7 @@ void getpower(char* statbuf)
 
 void getnetwork(char* statbuf)
 {
-	// gets set at 10th iteration
-	LOCK(ULINT);
+	LOCK(ULINT, 0);
 	DEBUG("network");
 
 	int eon, won;
@@ -250,7 +250,7 @@ void getnetwork(char* statbuf)
 void getvolume(char* statbuf)
 {
 	// gets unlocked only at interrupt
-	LOCK(ULINT);
+	LOCK(ULINT, 0);
 	DEBUG("volume");
 
     // select default master profile from alsa devices
@@ -311,7 +311,7 @@ void getvolume(char* statbuf)
 
 void getkeyboardlayout(char* statbuf)
 {
-	LOCK(ULINT);
+	LOCK(ULINT, 0);
 	DEBUG("kbd");
 
 	if (printtostdout)
@@ -346,7 +346,7 @@ void getkeyboardlayout(char* statbuf)
 
 void getmyhostname(char* statbuf)
 {
-	LOCK(ULSTART);
+	LOCK(ULSTART, 1);
 
 	DEBUG("hostname");
 
@@ -359,6 +359,25 @@ void getmyhostname(char* statbuf)
 	sprintf(statbuf, delimeterformat, part);
 	free(part);
 }
+
+void getmemusage(char* statbuf)
+{
+	LOCK(5, 1);
+	DEBUG("mem");
+	struct sysinfo *info;
+	info = calloc(256, sizeof(char));
+
+	if (sysinfo(info) < 0)
+		err("Sysinfo error");
+
+	char* part;
+	part = calloc(8, sizeof(char));
+	sprintf(part, "%u MB", ((info->totalram / info->mem_unit) - (info->sharedram / info->mem_unit) - (info->freeram / info->mem_unit)) / 1048576 );
+	sprintf(statbuf, delimeterformat, part);
+	free(part);
+	free(info);
+}
+
 void setstatus()
 {
 	DEBUG("-----");
@@ -395,8 +414,9 @@ void updatestatus()
 
 void refreshstatus(int signo)
 {
-	lock = ULINT;
+	lock = ULINT; 		// lock variable gets set to a specific value so LOCK knows what to do
     updatestatus();
+	lock = 1;
 }
 
 void siginthandler(int signo)
@@ -549,6 +569,7 @@ int main(int argc, char* argv[])
 
 	if (HOSTNAMEMODULE)
 		modules[index++] = getmyhostname;
+    modules[index++] = getmemusage;
     modules[index++] = getnetwork;
     modules[index++] = getvolume;
     modules[index++] = getpower;
