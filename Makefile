@@ -1,5 +1,5 @@
 SHELL = /bin/sh
-CFLAGS = -lX11 -lasound -lpthread -g -lxkbfile
+CFLAGS = -lX11 -lasound -lpthread -lxkbfile
 OFLAG = -O2
 CC = gcc
 

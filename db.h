@@ -15,30 +15,9 @@
 #define WLANON          "/sys/class/net/"WLAN"/carrier"
 #define ETHERNETON      "/sys/class/net/"ETHERNET"/carrier"
 
-// helper macros
-#define err(mess) { fprintf(stderr,"Error: %s.\n", mess); exit(1); }
-#define quit(mess) { fprintf(stdout,"Quitting: %s.\n", mess); exit(1); }
-#define DEBUG(mess) { if(debug) { fprintf(stderr, "Debug:\t%s\n", mess); } }  
-#define DEBUGINT(num) { if(debug) fprintf(stderr, "Debug:\t%d\n", num); }  
-
 // lock variables
 #define ULINT			31
 #define ULSTART			32
-
-/* abandon all hope, ye who enter here
-#define LOCK(level, lockatint) { \
-if ( (lock % level == 0) || (lock == ULINT && lockatint == 0 ) || lock == ULSTART ) {} \
-else \
-	return; \
-} \
-*/
-
-#define LOCK(level, lockatint) { \
-if ( lock % level && (lock != ULINT || lockatint ) && lock != ULSTART ) \
-	return; \
-} \
-
-#define LOCKSTART() { if ( lock != ULSTART ) return; }
 
 // thread array (one thread for each module) and array of strings for each status module
 pthread_t threads[MODCOUNT + HOSTNAMEMODULE];

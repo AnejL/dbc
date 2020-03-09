@@ -23,6 +23,30 @@
 
 // general purpouse helper functions
 //
+void err(char* message)
+{
+	fprintf(stderr,"Error: %s.\n", message);
+	exit(1);
+}
+
+void quit(char* message)
+{
+	fprintf(stdout,"Quitting: %s.\n", message);
+	exit(1);
+}
+
+void DEBUG(char* message)
+{
+	if(debug)
+		fprintf(stderr, "Debug:\t%s\n", message);
+}  
+
+void DEBUGINT(int num) 
+{ 
+	if(debug)
+		fprintf(stderr, "Debug:\t%d\n", num);
+}  
+
 int readIntFile(char *path)
 {
     int fd;
@@ -92,6 +116,15 @@ int isDir(char *path)
 #endif
 
 // statusbar specific helper functions
+
+int locker(int level, int lockatint)
+{
+	// 0 unlocked - 1 locked
+	if ( lock % level && (lock != ULINT || lockatint ) && lock != ULSTART )
+		return 1;
+	return 0;
+}
+
 // initialise connection to X server
 void initdisplay()
 {
@@ -119,47 +152,46 @@ void getdatetime(char* statbuf)
 	char* part;
 	part = calloc(30, sizeof(char));
 
-	#if MINIMALMODE
+	if (MINIMALMODE)
 		strftime(part, 30, "%d.%m.%Y %H:%M", ptm);
-	#else
+	else
     	strftime(part, 30, "%a %d %b %Y %H:%M:%S", ptm);
-	#endif
 
 	// a cheesy but efficient way to get my original style
-	#if !STYLE
+	if (!STYLE)
 		sprintf(statbuf, "| %s ", part);
-	#else
+	else
 		sprintf(statbuf, delimeterformat, part);
-	#endif  
 
 	free(part);
 }
 
 void getpower(char* statbuf)
 {
-	// gets set at 5th iteration
-	LOCK(30, 1);
+	if (batteryfinished && locker(30, 1))
+		return;
 
+	batteryfinished = 0;
 	DEBUG("power");
 
     // if you choose to monitor batteries get capacity levels for max 2 batteries
-	#if BATTERYCOUNT > 0
-        
+	if (BATTERYCOUNT) 
+	{        
 		int capacity;
 		
         capacity = readShortIntFile(BAT0);
 
-		#if BATTERYCOUNT > 1
+		if (BATTERYCOUNT > 1)
 			// division by 2 in binary
             capacity = (capacity + readShortIntFile(BAT1)) >> 1;
-		#endif
 
 		char *part;
 		part = calloc(10, sizeof(char));
 
-		#if MINIMALMODE == 1
+		if (MINIMALMODE == 1)
 			sprintf(part, "%d", capacity);
-		#else
+		else
+		{
 			switch (capacity / 25)
 			{
 				case 0:
@@ -176,23 +208,26 @@ void getpower(char* statbuf)
 					break;
 			}
 			sprintf(part, "%s %d%%", part, capacity); 	
-		#endif
+		}
 
         sprintf(statbuf, delimeterformat, part);
 		free(part);
-    
-	#else
-		#if MINIMALMODE == 1
+   	} 
+	else
+	{
+		if (MINIMALMODE == 1)
 			sprintf(statbuf, delimeterformat, "");
-		#else
+		else
 			sprintf(statbuf, delimeterformat, " AC");
-		#endif
-	#endif
+	}
+	batteryfinished = 1;
 }
 
 void getnetwork(char* statbuf)
 {
-	LOCK(ULINT, 0);
+	if(locker(ULINT, 0))
+		return;
+
 	DEBUG("network");
 
 	int eon, won;
@@ -203,11 +238,10 @@ void getnetwork(char* statbuf)
 
     if (eon)
 	{
-		#if MINIMALMODE == 1
+		if (MINIMALMODE)
 			sprintf(statbuf, delimeterformat, "");
-		#else
+		else
 			sprintf(statbuf, delimeterformat, " Connected");
-		#endif
 	}
     else if (won > 0)
     {
@@ -251,7 +285,11 @@ void getnetwork(char* statbuf)
 void getvolume(char* statbuf)
 {
 	// gets unlocked only at interrupt
-	LOCK(ULINT, 0);
+	if(volumefinished && locker(ULINT, 0))
+		return;
+
+	volumefinished = 0;
+
 	DEBUG("volume");
 
     // select default master profile from alsa devices
@@ -307,12 +345,15 @@ void getvolume(char* statbuf)
 	sprintf(part, "%s %d%%", part, volume);
 	sprintf(statbuf, delimeterformat, part);
 	free(part);
+	volumefinished = 1;
 }
 
 
 void getkeyboardlayout(char* statbuf)
 {
-	LOCK(ULINT, 0);
+	if (locker(ULINT, 0))
+		return;
+
 	DEBUG("kbd");
 
 	if (printtostdout)
@@ -344,27 +385,28 @@ void getkeyboardlayout(char* statbuf)
 	free(part);
 }
 
-#if HOSTNAMEMODULE == 1
-	void getmyhostname(char* statbuf)
-	{
-		LOCK(ULSTART, 1);
+void getmyhostname(char* statbuf)
+{
+	if(locker(ULSTART, 1))
+		return;
 
-		DEBUG("hostname");
+	DEBUG("hostname");
 
-		char *part;
-		part = calloc(20, sizeof(char));
+	char *part;
+	part = calloc(20, sizeof(char));
 
-		if (gethostname(part, 20) < 0)
-			quit("problem getting hostname");
+	if (gethostname(part, 20) < 0)
+		quit("problem getting hostname");
 
-		sprintf(statbuf, delimeterformat, part);
-		free(part);
-	}
-#endif
+	sprintf(statbuf, delimeterformat, part);
+	free(part);
+}
 
 void getmemusage(char* statbuf)
 {
-	LOCK(5, 1);
+	if (locker(5, 1))
+		return;
+
 	DEBUG("mem");
 	struct sysinfo *info;
 	info = calloc(256, sizeof(char));
@@ -542,6 +584,10 @@ int main(int argc, char* argv[])
 	singleiter = 0;
 	noerror = 0;
 	printtostdout = 0;
+
+	batteryfinished = 1;
+	volumefinished = 1;
+
 	
 	// parse arguments and set control variables
 	if (argc > 1)
@@ -569,9 +615,8 @@ int main(int argc, char* argv[])
 	int index;
 	index = 0;
 
-	#if HOSTNAMEMODULE
+	if (HOSTNAMEMODULE)
 		modules[index++] = getmyhostname;
-	#endif
 
     modules[index++] = getmemusage;
     modules[index++] = getnetwork;
@@ -586,7 +631,7 @@ int main(int argc, char* argv[])
     {
         for (;; sleep(REFRESHINTERVAL))
 		{
-			DEBUGINT(lock);
+			//DEBUGINT(lock);
             updatestatus();
 
 			lock++;
