@@ -168,10 +168,9 @@ void getdatetime(char* statbuf)
 
 void getpower(char* statbuf)
 {
-	if (batteryfinished && locker(30, 1))
+	if (locker(30, 1))
 		return;
 
-	batteryfinished = 0;
 	DEBUG("power");
 
     // if you choose to monitor batteries get capacity levels for max 2 batteries
@@ -220,7 +219,6 @@ void getpower(char* statbuf)
 		else
 			sprintf(statbuf, delimeterformat, " AC");
 	}
-	batteryfinished = 1;
 }
 
 void getnetwork(char* statbuf)
@@ -285,10 +283,8 @@ void getnetwork(char* statbuf)
 void getvolume(char* statbuf)
 {
 	// gets unlocked only at interrupt
-	if(volumefinished && locker(ULINT, 0))
+	if(locker(ULINT, 0))
 		return;
-
-	volumefinished = 0;
 
 	DEBUG("volume");
 
@@ -345,7 +341,6 @@ void getvolume(char* statbuf)
 	sprintf(part, "%s %d%%", part, volume);
 	sprintf(statbuf, delimeterformat, part);
 	free(part);
-	volumefinished = 1;
 }
 
 
@@ -585,10 +580,6 @@ int main(int argc, char* argv[])
 	noerror = 0;
 	printtostdout = 0;
 
-	batteryfinished = 1;
-	volumefinished = 1;
-
-	
 	// parse arguments and set control variables
 	if (argc > 1)
 		parseargs(argc, argv);
