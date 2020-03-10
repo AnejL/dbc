@@ -128,12 +128,18 @@ int locker(int level, int lockatint)
 // initialise connection to X server
 void initdisplay()
 {
-	if (XInitThreads() < 1)
-		quit("threads can't be initialised");
-    if (!(dpy = XOpenDisplay(NULL)))
-        quit("display can't be opened...");
-}
+	// try to init the display and if you cant print to stdout
+    if ((dpy = XOpenDisplay(NULL)))
+	{
+		printtostdout = 1;
 
+		if (XInitThreads() < 1)
+			quit("threads can't be initialised");
+	}
+	else
+		DEBUG("X server connection not established");
+
+}
 // system status retrieving functions
 //
 void getdatetime(char* statbuf)
@@ -288,6 +294,13 @@ void getvolume(char* statbuf)
 
 	DEBUG("volume");
 
+	if (dpy == NULL)
+	{
+		sprintf(statbuf, delimeterformat, " N/A");
+		return;
+	}
+
+
     // select default master profile from alsa devices
     long min, max, volume = 0;
 	int enabled;
@@ -307,7 +320,8 @@ void getvolume(char* statbuf)
     snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
 
 	// if card is enabled write 1 to enabled
-	snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_UNKNOWN, &enabled);
+	//if (snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_UNKNOWN, &enabled) < 0)
+	enabled = 0;
 	
 	// write actual volume range to int pointers
 	snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
@@ -343,6 +357,7 @@ void getvolume(char* statbuf)
 	free(part);
 }
 
+//char *readCharFile(char *path)
 
 void getkeyboardlayout(char* statbuf)
 {
@@ -351,9 +366,9 @@ void getkeyboardlayout(char* statbuf)
 
 	DEBUG("kbd");
 
-	if (printtostdout)
+	if (dpy == NULL)
 	{
-		sprintf(statbuf, delimeterformat, "term");
+		sprintf(statbuf, delimeterformat, "N/A");
 		return;
 	}
 
@@ -584,9 +599,7 @@ int main(int argc, char* argv[])
 	if (argc > 1)
 		parseargs(argc, argv);
 
-	// if printtostdout is not set write to xsetroot
-	if (! printtostdout)
-		initdisplay();
+	initdisplay();
 
 	// if error checking is enabled check them
 	if (! noerror)
