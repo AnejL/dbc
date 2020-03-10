@@ -29,6 +29,11 @@ Arch Linux
 
 > \# sudo pacman -S libx11 alsa-lib ttf-font-awesome
 
+Ubuntu
+
+> \# sudo apt install libx11-dev libxkbfile-dev libasound2-dev
+
+
 **Create configuration files when running for the first time with:**
 
 > sudo make

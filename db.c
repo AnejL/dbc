@@ -131,13 +131,14 @@ void initdisplay()
 	// try to init the display and if you cant print to stdout
     if ((dpy = XOpenDisplay(NULL)))
 	{
-		printtostdout = 1;
-
 		if (XInitThreads() < 1)
 			quit("threads can't be initialised");
 	}
 	else
+	{
+		printtostdout = 1;
 		DEBUG("X server connection not established");
+	}
 
 }
 // system status retrieving functions

@@ -1,5 +1,5 @@
 SHELL = /bin/sh
-CFLAGS = -lX11 -lasound -lpthread -lxkbfile -g
+CFLAGS = -g -lX11 -lasound -lpthread -lxkbfile
 OFLAG = -O2
 CC = gcc
 
@@ -15,7 +15,7 @@ install: db.c
 		cp config.def.h config.h;\
 	fi\
 
-	$(CC) $(CFLAGS) -o dbc $(OFLAG) db.c
+	$(CC) db.c -L/usr/lib/i386-linux-gnu $(CFLAGS) $(OFLAG) -o dbc
 
 	ln -sf $(PWD)/dbc $(LINKLOC)
 	ln -sf $(PWD)/refbar.sh $(REFBARLOC)
