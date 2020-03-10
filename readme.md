@@ -29,9 +29,9 @@ Arch Linux
 
 > \# sudo pacman -S libx11 alsa-lib ttf-font-awesome
 
-Ubuntu
+Ubuntu (partially ported)
 
-> \# sudo apt install libx11-dev libxkbfile-dev libasound2-dev
+> \# sudo apt install libx11-dev libxkbfile-dev libasound2-dev fonts-font-awesome
 
 
 **Create configuration files when running for the first time with:**
@@ -97,6 +97,6 @@ Or
 
 ### Contribution and hacking
 
-This program was made and tested on the ThinkPad T480 and X230, both running Arch Linux. I have no guarantees that it will work on other laptops / distros even though it should. If you are interested in testing or have a problem, feel free to contact me.
+This program was made and tested on the ThinkPad T480 and X230, both running Arch Linux. I have no guarantees that it will work on other laptops / distros even though it should. I tried to make it run on ubuntu too but some font related problems have arised. If you are interested in testing or have a problem, feel free to contact me. 
 
 I also tried numerous times to implement PulseAudio module instead of ALSA, losing all hope eventually. Maybe I will try again some time in the future (if anyone knows how to do it efficiently please contact me at anej.lekse@gmail.com).
