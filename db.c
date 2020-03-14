@@ -321,8 +321,7 @@ void getvolume(char* statbuf)
     snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
 
 	// if card is enabled write 1 to enabled
-	//if (snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_UNKNOWN, &enabled) < 0)
-	enabled = 0;
+	snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_UNKNOWN, &enabled);
 	
 	// write actual volume range to int pointers
 	snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
