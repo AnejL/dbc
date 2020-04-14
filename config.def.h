@@ -7,6 +7,9 @@
 	// set to 1 if you want the first module to be your hostname if not, set to 0
     #define HOSTNAMEMODULE	1
 
+	// set to 1 if you want used memory module
+    #define MEMMODULE	1
+
 	// network
 	// set names of network devices to monitor (ip a)
     #define WLAN            "wlp3s0"

@@ -1,7 +1,7 @@
 // number of modules in statusbars that doubles as number of threads
 // if you don't add any of your own modules this shouldn't change
 // caps lock is a special module and should not be counted in here
-#define MODCOUNT		6
+#define MODCOUNT		5
 
 // battery dirs
 #define BAT0DIR         "/sys/class/power_supply/BAT0"
@@ -20,11 +20,11 @@
 #define ULSTART			32
 
 // thread array (one thread for each module) and array of strings for each status module
-pthread_t threads[MODCOUNT + HOSTNAMEMODULE];
-char *statusbuffer[MODCOUNT + HOSTNAMEMODULE];
+pthread_t threads[MODCOUNT + HOSTNAMEMODULE + MEMMODULE];
+char *statusbuffer[MODCOUNT + HOSTNAMEMODULE + MEMMODULE];
 
 // array of function pointers argument is a single statusbuffer[] element
-void (*modules[MODCOUNT + HOSTNAMEMODULE]) (char* statbuf);
+void (*modules[MODCOUNT + HOSTNAMEMODULE + MEMMODULE]) (char* statbuf);
 
 // final status char* that gets written to xsetroot
 char *status;

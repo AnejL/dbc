@@ -441,7 +441,7 @@ void setstatus()
     int i;
 
     strcpy(status, statusbuffer[0]);
-    for (i = 1; i < MODCOUNT + HOSTNAMEMODULE; i++)
+    for (i = 1; i < MODCOUNT + HOSTNAMEMODULE + MEMMODULE; i++)
         strcat(status, statusbuffer[i]);
 
 	if (! printtostdout)
@@ -457,10 +457,10 @@ void updatestatus()
 {
     // create a thread for every module, and join all threads afterwards
     int i;
-    for (i = 0; i < MODCOUNT + HOSTNAMEMODULE; i++)
+    for (i = 0; i < MODCOUNT + HOSTNAMEMODULE + MEMMODULE; i++)
         pthread_create(&threads[i], NULL, (void *) modules[i], statusbuffer[i]);
 
-    for (i = 0; i < MODCOUNT + HOSTNAMEMODULE; i++)
+    for (i = 0; i < MODCOUNT + HOSTNAMEMODULE + MEMMODULE; i++)
         pthread_join(threads[i], NULL);
 
     setstatus();
@@ -477,7 +477,7 @@ void siginthandler(int signo)
 {
 	// free all status strings, previously allocated
     int i;
-    for ( i = 0; i < MODCOUNT + HOSTNAMEMODULE; i++)
+    for ( i = 0; i < MODCOUNT + HOSTNAMEMODULE + MEMMODULE; i++)
         free(statusbuffer[i]);
 
 	free(status);
@@ -495,7 +495,7 @@ void initstatusbuffer()
 {
 	// allocate 30 bytes to status string locations
     int i;
-    for ( i = 0; i < MODCOUNT + HOSTNAMEMODULE; i++)
+    for ( i = 0; i < MODCOUNT + HOSTNAMEMODULE + MEMMODULE; i++)
         statusbuffer[i] = calloc(30, sizeof(char));
 }
 
@@ -622,7 +622,9 @@ int main(int argc, char* argv[])
 	if (HOSTNAMEMODULE)
 		modules[index++] = getmyhostname;
 
-    modules[index++] = getmemusage;
+	if (MEMMODULE)
+    	modules[index++] = getmemusage;
+
     modules[index++] = getnetwork;
     modules[index++] = getvolume;
     modules[index++] = getpower;
