@@ -10,9 +10,11 @@
 #define BAT1            "/sys/class/power_supply/BAT1/capacity"
 
 // wlan and ethernet dirs
+#ifdef WLAN
 #define WLANDIR         "/sys/class/net/"WLAN
-#define ETHERNETDIR     "/sys/class/net/"ETHERNET
 #define WLANON          "/sys/class/net/"WLAN"/carrier"
+#endif
+#define ETHERNETDIR     "/sys/class/net/"ETHERNET
 #define ETHERNETON      "/sys/class/net/"ETHERNET"/carrier"
 
 // lock variables

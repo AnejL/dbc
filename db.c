@@ -235,11 +235,14 @@ void getnetwork(char* statbuf)
 
 	DEBUG("network");
 
-	int eon, won;
+	int eon, won = 0;
 
     // read and check the current active device
     eon = readIntFile(ETHERNETON);
+	
+	#ifdef WLAN
     won = readIntFile(WLANON);
+	#endif
 
     if (eon)
 	{
@@ -248,6 +251,7 @@ void getnetwork(char* statbuf)
 		else
 			sprintf(statbuf, delimeterformat, " Connected");
 	}
+	#ifdef WLAN
     else if (won > 0)
     {
         struct iwreq req;
@@ -283,6 +287,7 @@ void getnetwork(char* statbuf)
     }
     else if (won == 0)
         sprintf(statbuf, delimeterformat, "  ");
+	#endif
 	else
 		sprintf(statbuf, delimeterformat, "Killed");
 }
@@ -518,11 +523,13 @@ void checkconfig()
 
 	// TODO check if wlan / ethernet are even enabled
 	// check wlan and ethernet
+	#ifdef WLAN
 	if (! isDir(WLANDIR))
 	{
 		printf("WiFi interface with name %s not found!\nUse \"ip a\" to get its name.\n", WLAN);
 		quit("Configuration checking failed!");
 	}	
+	#endif
 	if (! isDir(ETHERNETDIR))
 	{
 		printf("Ethernet interface with name %s not found!\nUse \"ip a\" to get its name.\n", ETHERNET);
